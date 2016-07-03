@@ -1,0 +1,14 @@
+{
+	"logins": [
+		{
+			"user": "USERNAME",
+			"pass": "PASSWORD",
+			"auth": ""
+		},
+		{
+			"user": "USERNAME",
+			"pass": "PASSWORD",
+			"auth": ""
+		}
+	]
+}
