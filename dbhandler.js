@@ -20,18 +20,25 @@ db.open(function(err, db) {
 
 exports.insertFloat = function(itemdata, callback) {
     // Insert new float in the DB
-    db.collection('marketfloats', function(err, collection) {
-        collection.insert(itemdata, {safe:true}, function(err, result) {
-            if (!err) {
-                // We don't need to send over the _id
-            	delete result["_id"];
-                callback(null, true);
-            }
-            else {
-                callback(err, false);
-            }
-        });
-    });
+    if ('item_name' in itemdata) {
+        db.collection('marketfloats', function(err, collection) {
+            collection.insert(itemdata, {safe:true}, function(err, result) {
+                if (!err) {
+                    // We don't need to send over the _id
+                    delete itemdata["_id"];
+                    callback(null, true);
+                }
+                else {
+                    callback(err, false);
+                }
+            });
+        });  
+    }
+    else {
+        console.log("This item has no item_name property, not adding to DB");
+        callback(true, false);
+    }
+    
 };
 
 exports.checkInserted = function(lookupVars, callback) {

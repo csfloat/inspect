@@ -95,12 +95,22 @@ function parseItemData(itemdata) {
   	var itemid = new Long(long_itemid.low, long_itemid.high, long_itemid.unsigned).toInt();
    
   	// Get the item name
-  	var skin_name = "_" + items_game_parsed["items_game"]["paint_kits"][parsed_json.iteminfo.paintindex]["name"];
-  	if (skin_name == "_default") {
-      	skin_name = "";
+  	if (parsed_json.iteminfo.paintindex in items_game_parsed["items_game"]["paint_kits"]) {
+	  	var skin_name = "_" + items_game_parsed["items_game"]["paint_kits"][parsed_json.iteminfo.paintindex]["name"];
+	  	if (skin_name == "_default") {
+	      	skin_name = "";
+	  	}
+	}
+	else {
+		var skin_name = "";
+	}
+
+	if (parsed_json.iteminfo.defindex in items_game_parsed["items_game"]["items"]) {
+  		var weapon_name = items_game_parsed["items_game"]["items"][parsed_json.iteminfo.defindex]["name"];
   	}
-  	var weapon_name = items_game_parsed["items_game"]["items"][parsed_json.iteminfo.defindex]["name"];
+
   	var image_name = weapon_name + skin_name;
+
   	if (image_name in weapon_images) {
       	parsed_json["iteminfo"]["imageurl"] = weapon_images[image_name]
   	}
@@ -108,25 +118,35 @@ function parseItemData(itemdata) {
       	parsed_json["iteminfo"]["imageurl"] = null
   	}
 
-  	var codename = items_game_parsed["items_game"]["paint_kits"][parsed_json.iteminfo.paintindex]["description_tag"].replace("#", "");
+  	if (parsed_json.iteminfo.paintindex in items_game_parsed["items_game"]["paint_kits"]) {
+  		var codename = items_game_parsed["items_game"]["paint_kits"][parsed_json.iteminfo.paintindex]["description_tag"].replace("#", "");
+  		var paint_data = items_game_parsed["items_game"]["paint_kits"][parsed_json.iteminfo.paintindex];
+  	}
+  	else {
+  		var codename = null;
+  		var paint_data = null;
+  	}
 
-  	var paint_data = items_game_parsed["items_game"]["paint_kits"][parsed_json.iteminfo.paintindex];
-
-  	if ('wear_remap_min' in paint_data) {
-    	parsed_json["iteminfo"]["min"] = paint_data["wear_remap_min"];
+  	if (paint_data != null && 'wear_remap_min' in paint_data) {
+    	parsed_json["iteminfo"]["min"] = parseFloat(paint_data["wear_remap_min"]);
   	}
   	else {
     	parsed_json["iteminfo"]["min"] = 0.060000;
   	}
 
-  	if ('wear_remap_max' in paint_data) {
-    	parsed_json["iteminfo"]["max"] = paint_data["wear_remap_max"];
+  	if (paint_data != null && 'wear_remap_max' in paint_data) {
+    	parsed_json["iteminfo"]["max"] = parseFloat(paint_data["wear_remap_max"]);
   	}
   	else {
     	parsed_json["iteminfo"]["max"] = 0.800000;
   	}
    
-  	var weapon_data = items_game_parsed["items_game"]["items"][parsed_json.iteminfo.defindex];
+   	if (parsed_json.iteminfo.defindex in items_game_parsed["items_game"]["items"]) {
+   		var weapon_data = items_game_parsed["items_game"]["items"][parsed_json.iteminfo.defindex];
+   	}
+  	else {
+  		var weapon_data = "";
+  	}
 
   	var weapon_hud = null;
   	if ('item_name' in weapon_data) {
@@ -135,14 +155,17 @@ function parseItemData(itemdata) {
   	}
   	else {
     	// need to find the item_name from the prefab
-    	var prefabval = items_game_parsed["items_game"]["items"][parsed_json.iteminfo.defindex]["prefab"];
-    	weapon_hud = items_game_parsed["items_game"]["prefabs"][prefabval]["item_name"].replace("#", "");
+    	if (parsed_json.iteminfo.defindex in items_game_parsed["items_game"]["items"]) {
+    		var prefabval = items_game_parsed["items_game"]["items"][parsed_json.iteminfo.defindex]["prefab"];
+    		weapon_hud = items_game_parsed["items_game"]["prefabs"][prefabval]["item_name"].replace("#", "");
+    	}
 
   	}
 
-  	var weapon_type = csgo_english["lang"]["Tokens"][weapon_hud];
-
-  	var item_name = csgo_english["lang"]["Tokens"][codename];
+  	if (weapon_hud in csgo_english["lang"]["Tokens"] && codename in csgo_english["lang"]["Tokens"]) {
+  		var weapon_type = csgo_english["lang"]["Tokens"][weapon_hud];
+  		var item_name = csgo_english["lang"]["Tokens"][codename];
+  	}
 
   	parsed_json["iteminfo"]["itemid_int"] = itemid;
   	parsed_json["iteminfo"]["item_name"] = item_name;
