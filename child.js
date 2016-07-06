@@ -13,8 +13,6 @@ var Steam = require("steam"),
 
 
 var login_info = JSON.parse(process.argv[2]); // obtain login info
-var error_reconnect = 0; // Boolean defining whether the bot was forcibly disconnected from Valve servers before
-var hasLoggedOn = false; // Boolean defining whether the bot has logged in or not
 var jobdata = {}; // Dict containing data about the current job
 var weapon_images = {}; // Dict containing weapon images
 var items_game_parsed = {}; // Dict containing a VDF parsed CSGO items_game copy
@@ -25,12 +23,12 @@ var csgo_english = {}; // Dict containing a VDF parsed CSGO csgo_english copy
 try {
     var weapon_image_file = fs.readFileSync(__dirname + "/gamefiles/items_game_cdn.txt");
     var weapon_image_text = weapon_image_file.toString();
-    var data = weapon_image_text.split("\r\n")
+    var data = weapon_image_text.split("\r\n");
     for (var line in data) {
         var text_line = data[line];
         if (String(text_line).search("=") > -1) {
-            image_data = text_line.split("=")
-            weapon_images[image_data[0]] = image_data[1]
+            image_data = text_line.split("=");
+            weapon_images[image_data[0]] = image_data[1];
         }
     }
 } catch (e) {
@@ -100,12 +98,12 @@ function parseItemData(itemdata) {
 	  	if (skin_name == "_default") {
 	      	skin_name = "";
 	  	}
-	}
-	else {
-		var skin_name = "";
-	}
+  	}
+  	else {
+  		var skin_name = "";
+  	}
 
-	if (parsed_json.iteminfo.defindex in items_game_parsed["items_game"]["items"]) {
+	  if (parsed_json.iteminfo.defindex in items_game_parsed["items_game"]["items"]) {
   		var weapon_name = items_game_parsed["items_game"]["items"][parsed_json.iteminfo.defindex]["name"];
   	}
 
@@ -209,15 +207,7 @@ CSGOCli.on("unhandled", function(message) {
 CSGOCli.on("ready", function() {
     util.log("node-csgo ready.");
 
-    hasLoggedOn = true;
-
-    if (error_reconnect == 0) {
-      process.send(["ready", login_info["index"]]);
-    }
-    else {
-      process.send(["ready_again", login_info["index"]]);
-    }
-
+    process.send(["ready", login_info["index"]]);
 });
 
 
@@ -228,10 +218,7 @@ CSGOCli.on("itemData", function(itemdata) {
 
 CSGOCli.on("unready", function onUnready(){
     util.log("node-csgo unready.");
-    if (hasLoggedOn) error_reconnect = 1;
     process.send(["unready", login_info["index"]]);
-    CSGOCli.launch();
-
 });
 
 
@@ -256,11 +243,6 @@ var onSteamLogOn = function onSteamLogOn(response){
       {
         util.log('error with  ' + login_info["user"], response);
         process.send(["unready", login_info["index"]]);
-
-        setTimeout(function () {
-          if (hasLoggedOn) error_reconnect = 1;
-          bot.connect();
-        }, 5000);
       }
     },
     onSteamSentry = function onSteamSentry(sentry) {
@@ -311,21 +293,10 @@ bot.on("logOnResponse", onSteamLogOn)
     .on('error', function () {
       	// log on again
       	process.send(["unready", login_info["index"]]);
-      	console.log("Error Bot disconnected, trying to reconnect");
-      	setTimeout(function () {
-	        // make the reconnect display a different ready to the host process
-	        if (hasLoggedOn) error_reconnect = 1;
-	        bot.connect();
-      	}, 5000);
     })
     .on('loggedOff', function () {
       	// log on again
       	process.send(["unready", login_info["index"]]);
-      	console.log("Logged Off Bot disconnected, trying to reconnect");
-      	setTimeout(function () {
-        	if (hasLoggedOn) error_reconnect = 1;
-        	bot.connect();
-      	}, 5000);
     })
     .on('connected', function(){
         steamUser.logOn(logOnDetails);

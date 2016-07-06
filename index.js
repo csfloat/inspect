@@ -1,5 +1,4 @@
 var express = require('express'),
-	bodyParser = require('body-parser'),
     http = require('http'),
     https = require('https'),
     kue = require('kue'),
@@ -27,6 +26,7 @@ var failedAttempts = {};
 var bot_number = user_pass_info["logins"].length; // Stores the number of bots
 var botData = []; // Stores current bot about regarding their job, child, ready/busy state, and done objects
 var requestWait = 1100 // Milliseconds to wait between requests to Valve
+var onlyRestart = false;
 
 
 // SSL Variables
@@ -53,12 +53,10 @@ if (bot_number == 0) {
 	process.exit(1);
 }
 
-// Create the child processes that handle the communication to Valve
-for(var x = 0; x < bot_number; x++) {
 
-	// Create child process with it's login info
-  	var cur_login = user_pass_info["logins"][x];
-  	cur_login["index"] = x;
+function forkChild(index) {
+	var cur_login = user_pass_info["logins"][index];
+  	cur_login["index"] = index;
   	console.log("Creating child process for " + cur_login["user"]);
   	var newchild = cp.fork('./child', [JSON.stringify(cur_login, null, 2)]);
 
@@ -82,8 +80,16 @@ for(var x = 0; x < bot_number; x++) {
 	      	if (isActive) {
 	      		// ready to send out requests
 	        	console.log("Bots are ready to accept requests");
+	        	io.emit('successmessage', "Valve's servers are online!");
 	        	isValveOnline = true;
-	        	resetQueue();
+
+	        	// If a bot errored out, only restart the queue
+	        	if (onlyRestart) {
+	        		apiObjs = {};
+	        	}
+	        	else {
+	        		resetQueue();
+	        	}
 	      	}
     	}
 	    else if (m[0] == "genericmsg") {
@@ -105,6 +111,7 @@ for(var x = 0; x < bot_number; x++) {
 					setTimeout(function(){ botData[m[1]]["doneobj"](); }, (requestWait-offset));
 				}
 				else {
+					// Just call done
 					botData[m[1]]["doneobj"]();
 				}
 
@@ -148,27 +155,44 @@ for(var x = 0; x < bot_number; x++) {
 	    	});
 	    }
 	    else if (m[0] == "unready") {
-	      console.log("Bot " + m[0] + " is not ready");
+	      	console.log("Bot " + m[1] + " is not ready");
 
-	      botData[m[1]]["ready"] = 0;
-	    }
-	    else if (m[0] == "ready_again") {
-	      // avoids a call to starting up the queue again, when the bot was disconnected and now is being reconnected
-	      console.log("Bot " + m[0] + " is ready again");
+	      	// Bot is no longer ready
+	      	botData[m[1]]["ready"] = 0;
 
-	      botData[m[1]]["ready"] = 1;
-	      botData[m[1]]["busy"] = 0;
+	      	// We don't need to instantiate the queue again
+	      	onlyRestart = true;
+
+	      	// Tell websocket users
+	      	if (isValveOnline) {
+	      		io.emit('errormessage', "Valve's servers appear to be offline");
+	      	}
+
+	      	// Don't let people put in requests now
+	      	isValveOnline = false;
+	      	// Kill the child and relaunch it
+	      	botData[m[1]]["obj"].kill();
+
+	      	// Fork the bot again and log it in
+          	forkChild(m[1]);
+          	botData[m[1]]["obj"].send(['login']);
 	    }
   	});
 
-  // Store the bot in an object
-  botData[x]["obj"] = newchild;
+  	// Store the bot in an object
+  	botData[index]["obj"] = newchild;
+}
+
+// Create the child processes that handle the communication to Valve
+for(var x = 0; x < bot_number; x++) {
+
+	// Create child process with it's login info
+  	forkChild(x);
 }
 
 
 // Setup and configure express
 var app = express();
-app.use(bodyParser());
 
 var server = http.Server(app);
 var httpsserver = https.Server(credentials, app);
@@ -218,18 +242,18 @@ app.get('/', function(req, res) {
 						}
 					}
 					else {
-						res.status(500).json({error: "Valve's servers appear to be offline, please try again later!", code:5});
+						res.status(500).json({error: "Valve's servers appear to be offline, please try again later", code:5});
 					}
 				}
 			});
 
 		}
 		else {
-			res.status(500).json({error: "Invalid Inspect Link Structure, please see the API docs.", code:2});
+			res.status(500).json({error: "Invalid Inspect Link Structure", code:2});
 		}
 	}
 	else {
-		res.status(500).json({error: "Improper Parameter Structure, please see the API docs.", code:1});
+		res.status(500).json({error: "Improper Parameter Structure", code:1});
 	}
 });
 
@@ -262,13 +286,18 @@ function LookupHandler(link, socket) {
 				socket.emit("floatmessage", {iteminfo: result});
 			}
 			else {
-				var socketip = socket.request.connection.remoteAddress;
-				if (socketip in apiObjs) {
-					socket.emit('errormessage', "You may only have one pending request at a time");
+				if (isValveOnline) {
+					var socketip = socket.request.connection.remoteAddress;
+					if (socketip in apiObjs) {
+						socket.emit('errormessage', "You may only have one pending request at a time");
+					}
+					else {
+						create_job(socket, false, lookupVars);
+						apiObjs[socketip] = true;
+					}
 				}
 				else {
-					create_job(socket, false, lookupVars);
-					apiObjs[socketip] = true;
+					socket.emit('errormessage', "Valve's servers appear to be offline, please try again later");
 				}
 			}
 		});
@@ -369,10 +398,15 @@ function resetQueue() {
 	  	socket.emit('joined');
 	  	socket.emit('infomessage', 'You no longer have to login! Have fun!');
 
+	  	if (!isValveOnline) {
+	  		socket.emit('errormessage', "Valve's servers appear to be offline, please try again later");
+	  	}
+
 	  	socket.on('lookup', function(link){
 	  		LookupHandler(link, socket);
 	    });
 	});
+
 
 	// Remove any current inactive jobs in the Kue
 	queue.inactive( function( err, ids ) {
@@ -393,88 +427,77 @@ function resetQueue() {
 	restart_queue();
 }
 
-/*
-kue job failed handlers
-*/
-
-
-
-// Default bot resetting if a job with > 1 attempts fails
-
 
 queue.on('job error', function(id, err){
     console.log("Job error " + err);
     // There was a timeout of 3sec, reset the bots busy state
 
     // Find which bot was handling this request
-    if (err == "TTL exceeded") {
-		for(var x2 = 0; x2 < bot_number; x2++) {
-			if (id == botData[x2]["childid"]) {
-				// found the index of the bot, change the status
-				console.log("Found bot to reset value " + x2);
+	for(var x2 = 0; x2 < bot_number; x2++) {
+		if (id == botData[x2]["childid"]) {
+			// found the index of the bot, change the status
+			console.log("Found bot to reset value " + x2);
 
-				// Increment the failed attempt
-				if (id in failedAttempts) {
-					failedAttempts[id] += 1;
-				}
-				else {
-					failedAttempts[id] = 1;
-				}
-
-				if (failedAttempts[id] == maxATTEMPTS) {
-
-					// Clear up the attempt
-					if (id in failedAttempts) {
-						delete failedAttempts[id];
-					}
-
-					// Tell the client
-					try {
-						kue.Job.get(id, function (err, job) {
-							console.log("Failed Job " + id);
-							if (job["data"]["socketid"] != undefined) {
-								io.to(job["data"]["socketid"]).emit("errormessage", "We couldn't retrieve the item data, are you sure you inputted the correct inspect link?");
-								var socketip = io.sockets.connected[job["data"]["socketid"]].request.connection.remoteAddress;
-								if (socketip in apiObjs) {
-									delete apiObjs[socketip];
-								}
-							}
-							else if (job["data"]["request"] != undefined && job["data"]["request"] in apiObjs) {
-								// failed http request
-								apiObjs[job["data"]["request"]].status(500).json({
-									error: "Valve's servers didn't reply in time",
-									code: 4
-								});
-								delete apiObjs[job["data"]["request"]];
-							}
-
-						});
-					}
-					catch (err) {
-						console.log("Failed to get job data for the failed job");
-					}
-				}
-
-
-				botData[x2]["busy"] = 0;
-				botData[x2]["childid"] = -1;
-
-				break;
+			// Increment the failed attempt
+			if (id in failedAttempts) {
+				failedAttempts[id] += 1;
 			}
+			else {
+				failedAttempts[id] = 1;
+			}
+
+			if (failedAttempts[id] == maxATTEMPTS) {
+
+				// Clear up the attempt
+				if (id in failedAttempts) {
+					delete failedAttempts[id];
+				}
+
+				// Tell the client
+				try {
+					kue.Job.get(id, function (err, job) {
+						console.log("Failed Job " + id);
+						if (job["data"]["socketid"] != undefined) {
+							io.to(job["data"]["socketid"]).emit("errormessage", "We couldn't retrieve the item data, are you sure you inputted the correct inspect link?");
+							var socketip = io.sockets.connected[job["data"]["socketid"]].request.connection.remoteAddress;
+							if (socketip in apiObjs) {
+								delete apiObjs[socketip];
+							}
+						}
+						else if (job["data"]["request"] != undefined && job["data"]["request"] in apiObjs) {
+							// failed http request
+							apiObjs[job["data"]["request"]].status(500).json({
+								error: "Valve's servers didn't reply in time",
+								code: 4
+							});
+							delete apiObjs[job["data"]["request"]];
+						}
+
+					});
+				}
+				catch (err) {
+					console.log("Failed to get job data for the failed job");
+				}
+			}
+
+
+			botData[x2]["busy"] = 0;
+			botData[x2]["childid"] = -1;
+
+			break;
 		}
-
-    }
-    else {
-      console.log("Queue Error: " + err);
-    }
+	}
 });
-
 
 
 /*
 Restarts the queue
 */
 function restart_queue() {
+
+	/*
+	kue job failed handlers
+	*/
 
   	queue.process('floatlookup', bot_number, function(job, ctx, done){
 	    // try to find an open bot
@@ -498,49 +521,13 @@ function restart_queue() {
 	    }
 	    if (bot_found != null) {
 	      	// follow through with sending the request
-	      	console.log("sending request to " + bot_index + " job id of " + job.id);
+	      	console.log("Sending request to " + bot_index + " with a job id of " + job.id);
 
 	      	var data = job["data"];
 	      	bot_found.send(['floatrequest', data, done]);
 	    }
 	    else {
-	      	console.log("There is no bot to fullfill this request, this might be because a bot went down, checking now...");
-
-	      	// check how many bots have a "ready" tag, if it is less than the worker_amt, we should pause this worker
-	      	var current_bots_active = 0;
-	      	for (var x = 0; x < bot_number; x++) {
-	        	if (botData[x]["ready"] == 1) {
-	          		current_bots_active += 1;
-	        	}
-	      	}
-
-	      	if (current_bots_active < bot_number) {
-	      		isValveOnline = false;
-	        	console.log("A bot went down, going to try to restart the queue");
-	        	io.emit('errormessage', "Valve's servers seem to be down, please wait");
-
-	        	// keep on checking periodically whether the bot is ready yet, so we can resume this worker
-	        	// if not, this one worker will just be paused indefinitely
-	        	queue.shutdown(5000, function(err) {
-	          		var restart_timer = setInterval(function(){
-	            		var bots_active_timeout = 0;
-	            		for (var x = 0; x < bot_number; x++) {
-	              			if (botData[x]["ready"] == 1) {
-	                			bots_active_timeout += 1;
-	              			}
-						}
-						if (bots_active_timeout == bot_number) {
-							// there are more bots ready than current workers processing, resume this worker
-							console.log("Restarting the queue since the bots are back");
-							io.emit('successmessage', "Valve's servers are back up!");
-							isValveOnline = true;
-							// clear this setinterval and restart the queue
-							clearInterval(restart_timer);
-							restart_queue();
-						}
-	          		}, 5000);
-	        	});
-	      	}
+	      	console.log("There is no bot to fullfill this request, they must be down.");
 	    }
 	});
 }
