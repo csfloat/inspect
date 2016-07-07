@@ -267,14 +267,21 @@ if (login_info["auth"] != "") {
 
 
 function getSentryID() {
-	// Each senty file appears to only allow 3 logins
-	var sentryindex = login_info["index"];
-	return parseInt(Math.floor(login_info["index"]/3));
+	return ('sentry/' + login_info["user"] + ".sentry");
 }
 
+console.log(login_info["index"] + " with sentry id of " + getSentryID());
 
-var sentry = fs.readFileSync('sentry' + getSentryID());
-if (sentry.length) {
+var sentry = null;
+
+if (fs.existsSync(getSentryID())) {
+  sentry = fs.readFileSync(getSentryID());
+}
+else {
+  console.log("There is no sentry file for this bot");
+}
+
+if (sentry != undefined && sentry.length) {
     logOnDetails.sha_sentryfile = MakeSha(sentry);
 }
 
@@ -282,7 +289,7 @@ if (sentry.length) {
 // Steam Event Handler
 steamUser.on('updateMachineAuth', function(response, callback){
   	// One sentry file can store the login info for 3 bots, so we need to make multiple copies 
-	fs.writeFileSync('sentry' + getSentryID(), response.bytes);
+	fs.writeFileSync(getSentryID(), response.bytes);
   	callback({ sha_file: MakeSha(response.bytes) });
 });
 
