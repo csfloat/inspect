@@ -107,12 +107,23 @@ function forkChild(index) {
 
 				// We ensure a delay of requestWait between requests for this bot
 				if (offset < requestWait) {
-					console.log("Delaying for " + (requestWait-offset) + "ms");
-					setTimeout(function(){ botData[m[1]]["doneobj"](); }, (requestWait-offset));
+					console.log("Delaying for " + (requestWait-offset) + "ms, it took " + offset + "ms for the request");
+
+					setTimeout(function(){ 
+						botData[m[1]]["doneobj"]();
+
+						// This bot is no longer busy (MAKE SURE THIS IS CALLED AFTER DONE)
+						// Otherwise, Kue will asign the bot with a new request and overwrite the old done object
+						// Then it will time out this good request and block the user
+	    				botData[m[1]]["busy"] = 0;
+					}, (requestWait-offset));
 				}
 				else {
 					// Just call done
 					botData[m[1]]["doneobj"]();
+
+					// This bot is no longer busy (MAKE SURE THIS IS CALLED AFTER DONE)
+	    			botData[m[1]]["busy"] = 0;
 				}
 
 				// Clear up the attempts
@@ -121,9 +132,6 @@ function forkChild(index) {
 					delete failedAttempts[botData[m[1]]["childid"]];
 				}
 	    	}
-
-	    	// This bot is no longer busy
-	    	botData[m[1]]["busy"] = 0;
 
 	    	// Add the float to the DB so that it can be used next time for this same request
 	    	dbhandler.insertFloat(m[3]["iteminfo"], function (err, result) {
@@ -433,7 +441,7 @@ function resetQueue() {
 
 
 queue.on('job error', function(id, err){
-    console.log("Job error " + err);
+    console.log("Job error " + err + " with " + id);
     // There was a timeout of 3sec, reset the bots busy state
 
     // Find which bot was handling this request
@@ -540,3 +548,5 @@ function restart_queue() {
 for(var x = 0; x < bot_number; x++) {
   	botData[x]["obj"].send(['login']);
 }
+
+//kue.app.listen(2999);
