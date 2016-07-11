@@ -491,8 +491,9 @@ queue.on('job error', function(id, err){
 					console.log("Failed to get job data for the failed job");
 				}
 			}
-
-
+			
+			// Turns out that if you don't call "done", Kue thinks the bot is still occupied
+			botData[x2]["doneobj"]();
 			botData[x2]["busy"] = 0;
 			botData[x2]["childid"] = -1;
 
