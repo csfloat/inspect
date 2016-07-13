@@ -74,119 +74,119 @@ process.on('message', function(m) {
 
 
 /*
-	Emit message to the current websocket client for this request
+    Emit message to the current websocket client for this request
 */
 function emitMessage(type, msg) {
-  process.send(["genericmsg", type, msg, jobdata["socketid"]]);
+    process.send(["genericmsg", type, msg, jobdata["socketid"]]);
 }
 
 
 /*
-	Parse and find the itemname from Valve's response
+    Parse and find the itemname from Valve's response
 */
 function parseItemData(itemdata) {
-  	var parsed_json = JSON.parse(JSON.stringify(itemdata, null, 2));
+    var parsed_json = JSON.parse(JSON.stringify(itemdata, null, 2));
 
-  	var wear_val = parsed_json.iteminfo.paintwear
+    var wear_val = parsed_json.iteminfo.paintwear
 
-  	var long_itemid = parsed_json.iteminfo.itemid;
-  	var itemid = new Long(long_itemid.low, long_itemid.high, long_itemid.unsigned).toInt();
+    var long_itemid = parsed_json.iteminfo.itemid;
+    var itemid = new Long(long_itemid.low, long_itemid.high, long_itemid.unsigned).toInt();
    
-  	// Get the item name
-  	if (parsed_json.iteminfo.paintindex in items_game_parsed["items_game"]["paint_kits"]) {
-	  	var skin_name = "_" + items_game_parsed["items_game"]["paint_kits"][parsed_json.iteminfo.paintindex]["name"];
-	  	if (skin_name == "_default") {
-	      	skin_name = "";
-	  	}
-  	}
-  	else {
-  		var skin_name = "";
-  	}
+    // Get the item name
+    if (parsed_json.iteminfo.paintindex in items_game_parsed["items_game"]["paint_kits"]) {
+        var skin_name = "_" + items_game_parsed["items_game"]["paint_kits"][parsed_json.iteminfo.paintindex]["name"];
+        if (skin_name == "_default") {
+            skin_name = "";
+        }
+    }
+    else {
+        var skin_name = "";
+    }
 
-	  if (parsed_json.iteminfo.defindex in items_game_parsed["items_game"]["items"]) {
-  		var weapon_name = items_game_parsed["items_game"]["items"][parsed_json.iteminfo.defindex]["name"];
-  	}
+      if (parsed_json.iteminfo.defindex in items_game_parsed["items_game"]["items"]) {
+        var weapon_name = items_game_parsed["items_game"]["items"][parsed_json.iteminfo.defindex]["name"];
+    }
 
-  	var image_name = weapon_name + skin_name;
+    var image_name = weapon_name + skin_name;
 
-  	if (image_name in weapon_images) {
-      	parsed_json["iteminfo"]["imageurl"] = weapon_images[image_name]
-  	}
-  	else {
-      	parsed_json["iteminfo"]["imageurl"] = null
-  	}
+    if (image_name in weapon_images) {
+        parsed_json["iteminfo"]["imageurl"] = weapon_images[image_name]
+    }
+    else {
+        parsed_json["iteminfo"]["imageurl"] = null
+    }
 
-  	if (parsed_json.iteminfo.paintindex in items_game_parsed["items_game"]["paint_kits"]) {
-  		var codename = items_game_parsed["items_game"]["paint_kits"][parsed_json.iteminfo.paintindex]["description_tag"].replace("#", "");
-  		var paint_data = items_game_parsed["items_game"]["paint_kits"][parsed_json.iteminfo.paintindex];
-  	}
-  	else {
-  		var codename = null;
-  		var paint_data = null;
-  	}
+    if (parsed_json.iteminfo.paintindex in items_game_parsed["items_game"]["paint_kits"]) {
+        var codename = items_game_parsed["items_game"]["paint_kits"][parsed_json.iteminfo.paintindex]["description_tag"].replace("#", "");
+        var paint_data = items_game_parsed["items_game"]["paint_kits"][parsed_json.iteminfo.paintindex];
+    }
+    else {
+        var codename = null;
+        var paint_data = null;
+    }
 
-  	if (paint_data != null && 'wear_remap_min' in paint_data) {
-    	parsed_json["iteminfo"]["min"] = parseFloat(paint_data["wear_remap_min"]);
-  	}
-  	else {
-    	parsed_json["iteminfo"]["min"] = 0.060000;
-  	}
+    if (paint_data != null && 'wear_remap_min' in paint_data) {
+        parsed_json["iteminfo"]["min"] = parseFloat(paint_data["wear_remap_min"]);
+    }
+    else {
+        parsed_json["iteminfo"]["min"] = 0.060000;
+    }
 
-  	if (paint_data != null && 'wear_remap_max' in paint_data) {
-    	parsed_json["iteminfo"]["max"] = parseFloat(paint_data["wear_remap_max"]);
-  	}
-  	else {
-    	parsed_json["iteminfo"]["max"] = 0.800000;
-  	}
+    if (paint_data != null && 'wear_remap_max' in paint_data) {
+        parsed_json["iteminfo"]["max"] = parseFloat(paint_data["wear_remap_max"]);
+    }
+    else {
+        parsed_json["iteminfo"]["max"] = 0.800000;
+    }
    
-   	if (parsed_json.iteminfo.defindex in items_game_parsed["items_game"]["items"]) {
-   		var weapon_data = items_game_parsed["items_game"]["items"][parsed_json.iteminfo.defindex];
-   	}
-  	else {
-  		var weapon_data = "";
-  	}
+    if (parsed_json.iteminfo.defindex in items_game_parsed["items_game"]["items"]) {
+        var weapon_data = items_game_parsed["items_game"]["items"][parsed_json.iteminfo.defindex];
+    }
+    else {
+        var weapon_data = "";
+    }
 
-  	var weapon_hud = null;
-  	if ('item_name' in weapon_data) {
-    	// don't have to get the wpnhud data
-    	weapon_hud = weapon_data["item_name"].replace("#", "");
-  	}
-  	else {
-    	// need to find the item_name from the prefab
-    	if (parsed_json.iteminfo.defindex in items_game_parsed["items_game"]["items"]) {
-    		var prefabval = items_game_parsed["items_game"]["items"][parsed_json.iteminfo.defindex]["prefab"];
-    		weapon_hud = items_game_parsed["items_game"]["prefabs"][prefabval]["item_name"].replace("#", "");
-    	}
+    var weapon_hud = null;
+    if ('item_name' in weapon_data) {
+        // don't have to get the wpnhud data
+        weapon_hud = weapon_data["item_name"].replace("#", "");
+    }
+    else {
+        // need to find the item_name from the prefab
+        if (parsed_json.iteminfo.defindex in items_game_parsed["items_game"]["items"]) {
+            var prefabval = items_game_parsed["items_game"]["items"][parsed_json.iteminfo.defindex]["prefab"];
+            weapon_hud = items_game_parsed["items_game"]["prefabs"][prefabval]["item_name"].replace("#", "");
+        }
 
-  	}
+    }
 
-  	if (weapon_hud in csgo_english["lang"]["Tokens"] && codename in csgo_english["lang"]["Tokens"]) {
-  		var weapon_type = csgo_english["lang"]["Tokens"][weapon_hud];
-  		var item_name = csgo_english["lang"]["Tokens"][codename];
-  	}
+    if (weapon_hud in csgo_english["lang"]["Tokens"] && codename in csgo_english["lang"]["Tokens"]) {
+        var weapon_type = csgo_english["lang"]["Tokens"][weapon_hud];
+        var item_name = csgo_english["lang"]["Tokens"][codename];
+    }
 
-  	parsed_json["iteminfo"]["itemid_int"] = itemid;
-  	parsed_json["iteminfo"]["item_name"] = item_name;
+    parsed_json["iteminfo"]["itemid_int"] = itemid;
+    parsed_json["iteminfo"]["item_name"] = item_name;
 
-  	parsed_json["iteminfo"]["paintindex"] = parsed_json.iteminfo.paintindex;
-  	parsed_json["iteminfo"]["defindex"] = parsed_json.iteminfo.defindex;
+    parsed_json["iteminfo"]["paintindex"] = parsed_json.iteminfo.paintindex;
+    parsed_json["iteminfo"]["defindex"] = parsed_json.iteminfo.defindex;
 
-  	parsed_json["iteminfo"]["s"] = jobdata["s"];
-  	parsed_json["iteminfo"]["a"] = jobdata["a"];
-  	parsed_json["iteminfo"]["d"] = jobdata["d"];
-  	parsed_json["iteminfo"]["m"] = jobdata["m"];
+    parsed_json["iteminfo"]["s"] = jobdata["s"];
+    parsed_json["iteminfo"]["a"] = jobdata["a"];
+    parsed_json["iteminfo"]["d"] = jobdata["d"];
+    parsed_json["iteminfo"]["m"] = jobdata["m"];
 
-  	parsed_json["iteminfo"]["weapon_type"] = weapon_type;
+    parsed_json["iteminfo"]["weapon_type"] = weapon_type;
 
-  	emitItemData(parsed_json);
+    emitItemData(parsed_json);
 }
 
 
 /*
-	Send back itemdata to the parent
+    Send back itemdata to the parent
 */
 function emitItemData(itemData) {
-  	process.send(["itemdata", login_info["index"], jobdata["socketid"], itemData, jobdata["request"]]);
+    process.send(["itemdata", login_info["index"], jobdata["socketid"], itemData, jobdata["request"]]);
 }
 
 
@@ -228,22 +228,22 @@ CSGOCli.on("unhandled", function(kMsg) {
 
 
 var onSteamLogOn = function onSteamLogOn(response){
-      if (response.eresult == Steam.EResult.OK) {
-        util.log('Logged in!');
+        if (response.eresult == Steam.EResult.OK) {
+            util.log('Logged in!');
 
-        steamFriends.setPersonaState(Steam.EPersonaState.Busy);
-        util.log("Logged on.");
+            steamFriends.setPersonaState(Steam.EPersonaState.Busy);
+            util.log("Logged on.");
 
-        util.log("Current SteamID64: " + bot.steamID);
-        util.log("Account ID: " + CSGOCli.ToAccountID(bot.steamID));
+            util.log("Current SteamID64: " + bot.steamID);
+            util.log("Account ID: " + CSGOCli.ToAccountID(bot.steamID));
 
-        CSGOCli.launch();
-      }
-      else
-      {
-        util.log('error with  ' + login_info["user"], response);
-        process.send(["unready", login_info["index"]]);
-      }
+            CSGOCli.launch();
+        }
+        else
+        {
+            util.log('error with  ' + login_info["user"], response);
+            process.send(["unready", login_info["index"]]);
+        }
     },
     onSteamSentry = function onSteamSentry(sentry) {
         util.log("Received sentry.");
@@ -267,7 +267,7 @@ if (login_info["auth"] != "") {
 
 
 function getSentryID() {
-	return ('sentry/' + login_info["user"] + ".sentry");
+    return ('sentry/' + login_info["user"] + ".sentry");
 }
 
 console.log(login_info["index"] + " with sentry id of " + getSentryID());
@@ -275,10 +275,10 @@ console.log(login_info["index"] + " with sentry id of " + getSentryID());
 var sentry = null;
 
 if (fs.existsSync(getSentryID())) {
-  sentry = fs.readFileSync(getSentryID());
+    sentry = fs.readFileSync(getSentryID());
 }
 else {
-  console.log("There is no sentry file for this bot");
+    console.log("There is no sentry file for this bot");
 }
 
 if (sentry != undefined && sentry.length) {
@@ -288,9 +288,9 @@ if (sentry != undefined && sentry.length) {
 
 // Steam Event Handler
 steamUser.on('updateMachineAuth', function(response, callback){
-  	// One sentry file can store the login info for 3 bots, so we need to make multiple copies 
-	fs.writeFileSync(getSentryID(), response.bytes);
-  	callback({ sha_file: MakeSha(response.bytes) });
+    // One sentry file can store the login info for 3 bots, so we need to make multiple copies 
+    fs.writeFileSync(getSentryID(), response.bytes);
+    callback({ sha_file: MakeSha(response.bytes) });
 });
 
 
@@ -298,12 +298,12 @@ bot.on("logOnResponse", onSteamLogOn)
     .on('sentry', onSteamSentry)
     .on('servers', onSteamServers)
     .on('error', function () {
-      	// log on again
-      	process.send(["unready", login_info["index"]]);
+        // log on again
+        process.send(["unready", login_info["index"]]);
     })
     .on('loggedOff', function () {
-      	// log on again
-      	process.send(["unready", login_info["index"]]);
+        // log on again
+        process.send(["unready", login_info["index"]]);
     })
     .on('connected', function(){
         steamUser.logOn(logOnDetails);

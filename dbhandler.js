@@ -1,7 +1,7 @@
 var mongo = require('mongodb');
 
 var server = mongo.Server,
-	Db = mongo.Db;
+    Db = mongo.Db;
 
 var server = new server('localhost', 27017, {auto_reconnect: true});
 db = new Db('CSGOFloatdb', server);
@@ -38,7 +38,6 @@ exports.insertFloat = function(itemdata, callback) {
         console.log("This item has no item_name property, not adding to DB");
         callback(true, false);
     }
-    
 };
 
 exports.checkInserted = function(lookupVars, callback) {
@@ -51,7 +50,7 @@ exports.checkInserted = function(lookupVars, callback) {
             if(doc === null){
                 callback(null, false);
             } else {
-            	delete doc["_id"]; // We don't need to return this
+                delete doc["_id"]; // We don't need to return this
                 callback(null, doc);
             };
         });
