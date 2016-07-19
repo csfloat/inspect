@@ -111,7 +111,7 @@ function forkChild(index) {
 
                 // We ensure a delay of requestWait between requests for this bot
                 if (offset < requestWait) {
-                    console.log("Delaying for " + (requestWait-offset) + "ms, it took " + offset + "ms for the request");
+                    console.log("Delaying for " + (requestWait-offset) + "ms, it took " + offset + "ms for the request " + botData[m[1]]["childid"]);
 
                     setTimeout(function(){ 
                         botData[m[1]]["doneobj"]();
@@ -437,10 +437,28 @@ function resetQueue() {
                 });
             }
             catch (err) {
-                console.log("Couldn't obtain job when parsing inactive jobs")
+                console.log("Couldn't obtain job " + id + " when parsing inactive jobs");
             }
         });
     });
+
+    // Remove any current active jobs in the Kue
+    queue.active( function( err, ids ) {
+        ids.forEach( function( id ) {
+            try {
+                kue.Job.get( id, function( err, job ) {
+                    if (job != undefined) {
+                        job.remove();
+                    }
+                });
+            }
+            catch (err) {
+                console.log("Couldn't obtain job " + id + " when parsing active jobs");
+            }
+        });
+    });
+
+    console.log("Removed lingering jobs from previous sessions");
 
     restart_queue();
 }
@@ -538,6 +556,7 @@ function restart_queue() {
                 break;
             }
         }
+
         if (bot_found != null) {
             // follow through with sending the request
             console.log("Sending request to " + bot_index + " with a job id of " + job.id);
@@ -556,4 +575,11 @@ for(var x = 0; x < bot_number; x++) {
     botData[x]["obj"].send(['login']);
 }
 
-//kue.app.listen(2999);
+
+process.once( 'SIGTERM', function ( sig ) {
+    // Graceful shutdown of Kue
+    queue.shutdown( 5000, function(err) {
+        console.log( 'Kue shutdown: ', err||'' );
+        process.exit( 0 );
+    });
+});
