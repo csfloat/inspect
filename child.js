@@ -147,7 +147,7 @@ function parseItemData(itemdata) {
     }
 
     var weapon_hud = null;
-    if ('item_name' in weapon_data) {
+    if (weapon_data != "" && 'item_name' in weapon_data) {
         // don't have to get the wpnhud data
         weapon_hud = weapon_data["item_name"].replace("#", "");
     }
