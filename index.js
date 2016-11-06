@@ -212,13 +212,21 @@ var server = http.Server(app);
 var httpsserver = https.Server(credentials, app);
 var io = require('socket.io')(httpsserver);
 
+io.set('origins', 'csgofloat.com:80');
+
 app.get('/', function(req, res) {
     // HTTP/HTTPS API Handler
 
-    // Allow CORS
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET');
-    
+	// Allow some origins    
+    if (req.get('origin') != undefined) {
+    	// check to see if its a valid domain
+    	var validdomains = ["http://csgofloat.com", "https://csgofloat.com", "chrome-extension://jjicbefpemnphinccgikpdaagjebbnhg", "http://steamcommunity.com", "https://steamcommunity.com"];
+
+    	if (validdomains.indexOf(req.get('origin')) > -1) {
+    		res.header('Access-Control-Allow-Origin', req.get('origin'));
+    		res.header('Access-Control-Allow-Methods', 'GET');
+    	}
+    }
 
     // Verify proper parameters
     if (("a" in req.query && "d" in req.query && ("s" in req.query || "m" in req.query)) || "url" in req.query) {
