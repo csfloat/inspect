@@ -72,6 +72,10 @@ balanced-match@^0.4.1:
   version "0.4.2"
   resolved "https://registry.yarnpkg.com/balanced-match/-/balanced-match-0.4.2.tgz#cb3f3e3c732dc0f01ee70b403f302e61d7709838"
 
+bignumber.js@^2.0.7:
+  version "2.4.0"
+  resolved "https://registry.yarnpkg.com/bignumber.js/-/bignumber.js-2.4.0.tgz#838a992da9f9d737e0f4b2db0be62bb09dd0c5e8"
+
 body-parser@^1.12.2:
   version "1.15.2"
   resolved "https://registry.yarnpkg.com/body-parser/-/body-parser-1.15.2.tgz#d7578cf4f1d11d5f6ea804cef35dc7a7ff6dae67"
@@ -114,7 +118,7 @@ builtin-modules@^1.0.0:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/builtin-modules/-/builtin-modules-1.1.1.tgz#270f076c5a72c02f5b65a47df94c5fe3a278892f"
 
-bytebuffer@^5.0:
+bytebuffer@>=3.5.5, bytebuffer@^5.0, bytebuffer@~5:
   version "5.0.1"
   resolved "https://registry.yarnpkg.com/bytebuffer/-/bytebuffer-5.0.1.tgz#582eea4b1a873b6d020a48d58df85f0bba6cfddd"
   dependencies:
@@ -224,9 +228,24 @@ core-util-is@~1.0.0:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/core-util-is/-/core-util-is-1.0.2.tgz#b5fd54220aa2bc5ab57aab7140c940754503c1a7"
 
+csgo@^1.5.2:
+  version "1.5.2"
+  resolved "https://registry.yarnpkg.com/csgo/-/csgo-1.5.2.tgz#17956cafb04098e98ccfc2145fa4630d59a29cc8"
+  dependencies:
+    bignumber.js "^2.0.7"
+    bytebuffer ">=3.5.5"
+    deferred "^0.7.5"
+    protobufjs "^5.0.1"
+
 css-parse@1.7.x:
   version "1.7.0"
   resolved "https://registry.yarnpkg.com/css-parse/-/css-parse-1.7.0.tgz#321f6cf73782a6ff751111390fc05e2c657d8c9b"
+
+d@^0.1.1, d@~0.1.1:
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/d/-/d-0.1.1.tgz#da184c535d18d8ee7ba2aa229b914009fae11309"
+  dependencies:
+    es5-ext "~0.10.2"
 
 debug@*, debug@~2.2.0:
   version "2.2.0"
@@ -237,6 +256,16 @@ debug@*, debug@~2.2.0:
 decamelize@^1.0.0, decamelize@^1.1.1:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/decamelize/-/decamelize-1.2.0.tgz#f6534d15148269b20352e7bee26f501f9a191290"
+
+deferred@^0.7.5:
+  version "0.7.5"
+  resolved "https://registry.yarnpkg.com/deferred/-/deferred-0.7.5.tgz#6b02c3816b8e5ec8f0f33cea3e7ef3595e7e5c73"
+  dependencies:
+    d "~0.1.1"
+    es5-ext "~0.10.11"
+    event-emitter "~0.3.4"
+    next-tick "~0.2.2"
+    timers-ext "0.1"
 
 depd@~1.1.0:
   version "1.1.0"
@@ -268,9 +297,31 @@ error-ex@^1.2.0:
   dependencies:
     is-arrayish "^0.2.1"
 
+es5-ext@^0.10.7, es5-ext@~0.10.11, es5-ext@~0.10.2, es5-ext@~0.10.7:
+  version "0.10.12"
+  resolved "https://registry.yarnpkg.com/es5-ext/-/es5-ext-0.10.12.tgz#aa84641d4db76b62abba5e45fd805ecbab140047"
+  dependencies:
+    es6-iterator "2"
+    es6-symbol "~3.1"
+
+es6-iterator@2:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/es6-iterator/-/es6-iterator-2.0.0.tgz#bd968567d61635e33c0b80727613c9cb4b096bac"
+  dependencies:
+    d "^0.1.1"
+    es5-ext "^0.10.7"
+    es6-symbol "3"
+
 es6-promise@3.2.1:
   version "3.2.1"
   resolved "https://registry.yarnpkg.com/es6-promise/-/es6-promise-3.2.1.tgz#ec56233868032909207170c39448e24449dd1fc4"
+
+es6-symbol@3, es6-symbol@~3.1:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/es6-symbol/-/es6-symbol-3.1.0.tgz#94481c655e7a7cad82eba832d97d5433496d7ffa"
+  dependencies:
+    d "~0.1.1"
+    es5-ext "~0.10.11"
 
 escape-html@~1.0.3:
   version "1.0.3"
@@ -279,6 +330,13 @@ escape-html@~1.0.3:
 etag@~1.7.0:
   version "1.7.0"
   resolved "https://registry.yarnpkg.com/etag/-/etag-1.7.0.tgz#03d30b5f67dd6e632d2945d30d6652731a34d5d8"
+
+event-emitter@~0.3.4:
+  version "0.3.4"
+  resolved "https://registry.yarnpkg.com/event-emitter/-/event-emitter-0.3.4.tgz#8d63ddfb4cfe1fae3b32ca265c4c720222080bb5"
+  dependencies:
+    d "~0.1.1"
+    es5-ext "~0.10.7"
 
 express@^4.12.2, express@^4.14.0:
   version "4.14.0"
@@ -616,6 +674,10 @@ negotiator@0.6.1:
   version "0.6.1"
   resolved "https://registry.yarnpkg.com/negotiator/-/negotiator-0.6.1.tgz#2b327184e8992101177b28563fb5e7102acd0ca9"
 
+next-tick@~0.2.2:
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/next-tick/-/next-tick-0.2.2.tgz#75da4a927ee5887e39065880065b7336413b310d"
+
 nib@~1.1.2:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/nib/-/nib-1.1.2.tgz#6a69ede4081b95c0def8be024a4c8ae0c2cbb6c7"
@@ -737,6 +799,15 @@ protobufjs@^4.1:
   dependencies:
     ascli "~1"
     bytebuffer "~4 >=4.1"
+    glob "^5.0.10"
+    yargs "^3.10.0"
+
+protobufjs@^5.0.1:
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/protobufjs/-/protobufjs-5.0.1.tgz#589ecdda1a555fd69df4699adc142d36f133aa0b"
+  dependencies:
+    ascli "~1"
+    bytebuffer "~5"
     glob "^5.0.10"
     yargs "^3.10.0"
 
@@ -1079,6 +1150,13 @@ stylus@0.54.5, stylus@~0.54.5:
 "sylvester@>= 0.0.12", "sylvester@>= 0.0.8":
   version "0.0.21"
   resolved "https://registry.yarnpkg.com/sylvester/-/sylvester-0.0.21.tgz#2987b1ce2bd2f38b0dce2a34388884bfa4400ea7"
+
+timers-ext@0.1:
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/timers-ext/-/timers-ext-0.1.0.tgz#00345a2ca93089d1251322054389d263e27b77e2"
+  dependencies:
+    es5-ext "~0.10.2"
+    next-tick "~0.2.2"
 
 token-stream@0.0.1:
   version "0.0.1"
