@@ -1,43 +1,33 @@
-var express = require('express'),
-    http = require('http'),
-    https = require('https'),
-    kue = require('kue'),
+var kue = require('kue'),
     queue = kue.createQueue(),
     cp = require('child_process'),
-    dbhandler = require('./dbhandler.js'),
-    fs = require('fs');
-
+    dbhandler = require('./dbhandler'),
+    fs = require('fs'),
+    inspect_url = require("./inspect_url");
 
 // Get the bot login info
-var user_pass_info = JSON.parse(fs.readFileSync('logins.json', 'utf8'));
-
+try {
+    CONFIG = JSON.parse(fs.readFileSync('config.json', 'utf8'));
+}
+catch (e) {
+    console.log("Couldn't load config.json! Exiting...");
+    process.exit(1);
+}
 
 // API Variables
-
-var HTTPport = 1739;
-var HTTPSport = 1738;
 var isValveOnline = false; // boolean that defines whether all the bots are offline or not
 var apiObjs = {}; // Holds the request objects
-var maxATTEMPTS = 1; // Number of attempts for each request
+var maxATTEMPTS = CONFIG.max_attempts; // Number of attempts for each request
 var failedAttempts = {};
 
 // BOT Variables
-
-var bot_number = user_pass_info["logins"].length; // Stores the number of bots
+var bot_number = CONFIG.logins.length; // Stores the number of bots
 var botData = []; // Stores current bot about regarding their job, child, ready/busy state, and done objects
-var requestWait = 1100 // Milliseconds to wait between requests to Valve
+var requestWait = CONFIG.request_delay // Milliseconds to wait between requests to Valve
 var onlyRestart = false;
 
-
-// SSL Variables
-
-var privateKey  = fs.readFileSync('certs/sslnopass.key', 'utf8');
-var certificate = fs.readFileSync('certs/api.csgofloat.com.crt', 'utf8');
-var credentials = {key: privateKey, cert: certificate};
-
-
 // Push default bot values of them being offline
-for(var i = 0; i < bot_number; i++) {
+for (var i = 0; i < bot_number; i++) {
     botData[i] = {};
     botData[i]["ready"] = 0;
     botData[i]["busy"] = 1;
@@ -49,22 +39,27 @@ for(var i = 0; i < bot_number; i++) {
 
 
 if (bot_number == 0) {
-    console.log('There are no bot logins, please input some into logins.json. Exiting...');
+    console.log('There are no bot logins, please input some into config.json. Exiting...');
     process.exit(1);
 }
 
+// Make sure at least one of HTTP or HTTPS is enabled
+if (!CONFIG.https.enable && !CONFIG.http.enable) {
+    console.log('You must enable at least one of HTTP or HTTPS in the config');
+    process.exit(1);
+}
 
 function forkChild(index) {
     // Get the bot login info
-    var cur_login = user_pass_info["logins"][index];
+    var cur_login = CONFIG.logins[index];
     cur_login["index"] = index;
 
     // Fork the bot
     console.log("Creating child process for " + cur_login["user"]);
-    var newchild = cp.fork('./child', [JSON.stringify(cur_login, null, 2)]);
+    var newchild = cp.fork('./child.js', [JSON.stringify(cur_login, null, 2)]);
 
     newchild.on('message', function(m) {
-    
+
         if (m[0] == "ready") {
             // This bot is logged into CSGO and is ready
             console.log("Bot " + m[1] + " is ready");
@@ -84,7 +79,7 @@ function forkChild(index) {
             if (isActive) {
                 // All the bots are online and ready
                 console.log("Bots are ready to accept requests");
-                io.emit('successmessage', "Valve's servers are online!");
+                if (io) io.emit('successmessage', "Valve's servers are online!");
                 isValveOnline = true;
 
                 // If a bot errored out, only restart the queue
@@ -113,7 +108,7 @@ function forkChild(index) {
                 if (offset < requestWait) {
                     console.log("Delaying for " + (requestWait-offset) + "ms, it took " + offset + "ms for the request " + botData[m[1]]["childid"]);
 
-                    setTimeout(function(){ 
+                    setTimeout(function(){
                         botData[m[1]]["doneobj"]();
 
                         // This bot is no longer busy (MAKE SURE THIS IS CALLED AFTER DONE)
@@ -145,7 +140,7 @@ function forkChild(index) {
                 }
                 if (m[2] != null) {
                     // This is a websocket request
-                    
+
                     io.to(m[2]).emit("floatmessage", m[3]);
 
                     // found out the ip of the user and remove it from the blacklist
@@ -177,7 +172,7 @@ function forkChild(index) {
             onlyRestart = true;
 
             // Tell websocket users
-            if (isValveOnline) {
+            if (isValveOnline && io) {
                 io.emit('errormessage', "Valve's servers appear to be offline");
             }
 
@@ -198,203 +193,149 @@ function forkChild(index) {
 }
 
 // Create the child processes that handle the communication to Valve
-for(var x = 0; x < bot_number; x++) {
-
+for (var x = 0; x < bot_number; x++) {
     // Create child process with it's login info
     forkChild(x);
 }
 
+dbhandler.initialize(CONFIG.database.url, CONFIG.database.port, { auto_reconnect: true })
 
 // Setup and configure express
-var app = express();
+var app = require("express")();
 
-var server = http.Server(app);
-var httpsserver = https.Server(credentials, app);
-var io = require('socket.io')(httpsserver);
-
-io.set('origins', 'csgofloat.com:80');
-
-app.get('/', function(req, res) {
-    // HTTP/HTTPS API Handler
-
-	// Allow some origins    
+app.get("/", function(req, res) {
+    // Allow some origins
     if (req.get('origin') != undefined) {
-    	// check to see if its a valid domain
-    	var validdomains = ["http://csgofloat.com", "https://csgofloat.com", "chrome-extension://jjicbefpemnphinccgikpdaagjebbnhg", "http://steamcommunity.com", "https://steamcommunity.com"];
-
-    	if (validdomains.indexOf(req.get('origin')) > -1) {
-    		res.header('Access-Control-Allow-Origin', req.get('origin'));
-    		res.header('Access-Control-Allow-Methods', 'GET');
-    	}
+        // check to see if its a valid domain
+        if (CONFIG.allowed_origins.indexOf(req.get('origin')) !== -1) {
+            res.header('Access-Control-Allow-Origin', req.get('origin'));
+            res.header('Access-Control-Allow-Methods', 'GET');
+        }
     }
 
     // Verify proper parameters
-    if (("a" in req.query && "d" in req.query && ("s" in req.query || "m" in req.query)) || "url" in req.query) {
-        // Either s or m is filled out
-        if ("m" in req.query) {
-            req.query.s = "0";
-        }
-        else {
-            req.query.m = "0";
-        }
+    var inspectURL;
 
-        // Obtain the inspect urls
-        if ("url" in req.query) {
-            var inspectURL = req.query.url;
-        }
-        else {
-            var inspectURL = buildInspectURL(req.query);
-        }
-
-        var lookupVars = parseLookupText(inspectURL);
-
-        // Check if there are valid variables
-        if (lookupVars != false) {
-            dbhandler.checkInserted(lookupVars, function (err, result) {
-                if (result != false) {
-                    res.json({iteminfo: result});
-                }
-                else {
-                    
-                    if (isValveOnline) {
-                        var userIP = req.connection.remoteAddress;
-
-                        if (!(userIP in apiObjs)) {
-                            apiObjs[userIP] = res;
-                            create_job(false, userIP, lookupVars);
-                        }
-                        else {
-                            res.status(400).json({error: "You may only have one pending request at a time", code:3});
-                        }
-                    }
-                    else {
-                        res.status(503).json({error: "Valve's servers appear to be offline, please try again later", code:5});
-                    }
-                }
-            });
-
-        }
-        else {
-            res.status(400).json({error: "Invalid Inspect Link Structure", code:2});
-        }
+    if ("url" in req.query) {
+        inspectURL = req.query.url;
+    } else if ("a" in req.query && "d" in req.query && ("s" in req.query || "m" in req.query)) {
+        inspectURL = inspect_url.build(req.query);
+    } else {
+        res.status(400).json({ error: "Improper Parameter Structure", code: 1 });
+        return;
     }
-    else {
-        res.status(400).json({error: "Improper Parameter Structure", code:1});
+
+    var lookupVars = inspect_url.parse(inspectURL);
+
+    // Check if there are valid variables
+    if (!lookupVars) {
+        res.status(400).json({ error: "Invalid Inspect Link Structure", code: 2 });
+        return;
     }
+
+    dbhandler.checkInserted(lookupVars, function(err, result) {
+        if (result) {
+            res.json({ iteminfo: result });
+            return;
+        }
+
+        if (!isValveOnline) {
+            res.status(503).json({ error: "Valve's servers appear to be offline, please try again later", code: 5 });
+            return;
+        }
+
+        var userIP = req.connection.remoteAddress;
+
+        if (userIP in apiObjs) {
+            res.status(400).json({ error: "You may only have one pending request at a time", code: 3 });
+            return;
+        }
+
+        apiObjs[userIP] = res;
+        create_job(false, userIP, lookupVars);
+    });
 });
 
+var http_server = require("http").Server(app);
 
-/*
-Returns an inspect url given a user's query
-*/
-function buildInspectURL(query) {
-    url = ""
-    if (query["s"] == "0") {
-        url = "steam://rungame/730/76561202255233023/+csgo_econ_action_preview M" + query.m + "A" + query.a + "D" + query.d;
+var https_server;
+
+if (CONFIG.https.enable) {
+    var credentials = {
+        key: fs.readFileSync(CONFIG.https.key_path, 'utf8'),
+        cert: fs.readFileSync(CONFIG.https.cert_path, 'utf8'),
+        ca: fs.readFileSync(CONFIG.https.ca_path, 'utf8')
+    };
+
+    https_server = require("https").Server(credentials, app);
+}
+
+var io;
+
+if (CONFIG.socketio.enable) {
+    if (https_server) {
+        io = require("socket.io")(https_server);
     }
     else {
-        url = "steam://rungame/730/76561202255233023/+csgo_econ_action_preview S" + query.s + "A" + query.a + "D" + query.d;
+        // Fallback onto HTTP for socket.io
+        io = require("socket.io")(http_server);
     }
 
-    return url;
+    if (CONFIG.socketio.origins != "") {
+        io.set("origins", CONFIG.socketio.origins);
+    }
 }
 
 /*
-Handles websocket float request
+    Handles websocket float request
 */
 function LookupHandler(link, socket) {
-    lookupVars = parseLookupText(link);
+    lookupVars = inspect_url.parse(link);
 
-    if (lookupVars != false) {
-
-        dbhandler.checkInserted(lookupVars, function (err, result) {
-            if (result != false) {
-                socket.emit("floatmessage", {iteminfo: result});
-            }
-            else {
-                if (isValveOnline) {
-                    var socketip = socket.request.connection.remoteAddress;
-                    if (socketip in apiObjs) {
-                        socket.emit('errormessage', "You may only have one pending request at a time");
-                    }
-                    else {
-                        create_job(socket, false, lookupVars);
-                        apiObjs[socketip] = true;
-                    }
-                }
-                else {
-                    socket.emit('errormessage', "Valve's servers appear to be offline, please try again later");
-                }
-            }
-        });
+    if (lookupVars == false) {
+        socket.emit("errormessage", "We couldn't parse the inspect link, are you sure it is correct?");
+        return;
     }
-    else {
-        socket.emit('errormessage', "We couldn't parse the inspect link, are you sure it is correct?")
-    }
-}
 
-/*
-Returns s, m, a, d parameters given an inspect link
-*/
-function parseLookupText(link) {
-    // For the API, + signs get converted to a space in Express, so we account for that
-    var regexed = link.match(/steam:\/\/rungame\/730\/\d*\/[+ ]csgo_econ_action_preview [SM]\d*[A]\d*[D]\d*/g);
-
-    // Return variable
-    var returnVars = false;
-
-    if (regexed != null && regexed[0] == link) {
-        // the string still appears to be a valid structure
-        // check whether it is a market or inventory request
-        var lookup_type = link.match(/[+ ]csgo_econ_action_preview (.)\d*/);
-
-        if (lookup_type[1] != null) {
-            // get the data of the individual vars of the lookup string
-            var variable_type = link.match(/[MS](.*)A/);
-            var a = link.match(/[A](.*)D/);
-            var d = link.match(/[D](.*)/);
-
-
-            if (typeof variable_type[1] == "string" && typeof a[1] == "string" && typeof d[1] == "string") {
-                // Verify that we are dealing with strings
-                var svar = "0";
-                var mvar = "0";
-                var dvar = d[1];
-                var avar = a[1];
-
-                // Process whether this is from a market or inventory item
-                if (lookup_type[1] == "M") {
-                    mvar = variable_type[1];
-                }
-                else {
-                    svar = variable_type[1];
-                }
-
-                // Overwrite the return val
-                returnVars = [svar, avar, dvar, mvar];
-            }
+    dbhandler.checkInserted(lookupVars, function (err, result) {
+        if (result) {
+            socket.emit("floatmessage", { iteminfo: result });
+            return;
         }
-    }
 
-    return returnVars;
+        if (!isValveOnline) {
+            socket.emit("errormessage", "Valve's servers appear to be offline, please try again later");
+            return;
+        }
+
+        var socketip = socket.request.connection.remoteAddress;
+
+        if (socketip in apiObjs) {
+            socket.emit("errormessage", "You may only have one pending request at a time");
+            return;
+        }
+
+        apiObjs[socketip] = true;
+        create_job(socket, false, lookupVars);
+    });
 }
 
 /*
-Creates a Kue job given a float request
+    Creates a Kue job given a float request
 */
-function create_job(socket, request, LookupVars) {
+function create_job(socket, request, lookupVars) {
     // Support for http and websockets
 
-    // Create job with TTL of 3000, it will be considered a fail if a child process
+    // Create job with TTL of 2000, it will be considered a fail if a child process
     // doesn't return a value within 3sec
 
     var job = queue.create('floatlookup', {
         socketid: socket.id,
         request: request,
-        s: LookupVars[0],
-        a: LookupVars[1],
-        d: LookupVars[2],
-        m: LookupVars[3]
+        s: lookupVars.s,
+        a: lookupVars.a,
+        d: lookupVars.d,
+        m: lookupVars.m
     }).ttl(2000).attempts(maxATTEMPTS).removeOnComplete(true).save(function (err) {
         if (err) {
             console.log("There was an error adding the job to the queue");
@@ -405,34 +346,48 @@ function create_job(socket, request, LookupVars) {
         }
         else {
             if (socket != false) {
-                socket.emit("infomessage", "Your request for " + LookupVars[1] + " is in the queue");
+                socket.emit("infomessage", "Your request for " + lookupVars.a + " is in the queue");
             }
         }
     });
 }
 
 /*
-Resets the queue (initiated once the bots login)
+    Resets the queue (initiated once the bots login)
 */
 function resetQueue() {
+    if (CONFIG.http.enable) {
+        http_server.listen(CONFIG.http.port);
+        console.log("Listening for HTTP on port: " + CONFIG.http.port);
+    }
 
-    server.listen(HTTPport);
-    httpsserver.listen(HTTPSport);
+    if (CONFIG.https.enable) {
+        https_server.listen(CONFIG.https.port);
+        console.log("Listening for HTTPS on port: " + CONFIG.https.port);
+    }
 
     // Socket.io event handler
-    io.on('connection', function (socket) {
-        socket.emit('joined');
-        socket.emit('infomessage', 'You no longer have to login! Have fun!');
-
-        if (!isValveOnline) {
-            socket.emit('errormessage', "Valve's servers appear to be offline, please try again later");
+    if (CONFIG.socketio.enable) {
+        if (CONFIG.https.enable) {
+            console.log("Listening for HTTPS websocket connections on port: " + CONFIG.https.port);
+        }
+        else {
+            console.log("Listening for HTTP websocket connections on port: " + CONFIG.http.port);
         }
 
-        socket.on('lookup', function(link){
-            LookupHandler(link, socket);
-        });
-    });
+        io.on('connection', function(socket) {
+            socket.emit('joined');
+            socket.emit('infomessage', 'You no longer have to login! Have fun!');
 
+            if (!isValveOnline) {
+                socket.emit('errormessage', "Valve's servers appear to be offline, please try again later");
+            }
+
+            socket.on('lookup', function(link) {
+                LookupHandler(link, socket);
+            });
+        });
+    }
 
     // Remove any current inactive jobs in the Kue
     queue.inactive( function( err, ids ) {
@@ -523,7 +478,7 @@ queue.on('job error', function(id, err){
                     console.log("Failed to get job data for the failed job");
                 }
             }
-            
+
             // Turns out that if you don't call "done", Kue thinks the bot is still occupied
             botData[x2]["doneobj"]();
             botData[x2]["busy"] = 0;
@@ -536,14 +491,12 @@ queue.on('job error', function(id, err){
 
 
 /*
-Restarts the queue
+    Restarts the queue
 */
 function restart_queue() {
-
     /*
     kue job failed handlers
     */
-
     queue.process('floatlookup', bot_number, function(job, ctx, done){
         // try to find an open bot
         bot_found = null;
@@ -578,16 +531,33 @@ function restart_queue() {
     });
 }
 
-// Login the bots
-for(var x = 0; x < bot_number; x++) {
-    botData[x]["obj"].send(['login']);
+/*
+    Returns a boolean as to whether the specified path is a directory and exists
+*/
+function isValidDir(path) {
+    try {
+        return fs.statSync(path).isDirectory();
+    } catch (e) {
+        return false;
+    }
+}
+
+// If the sentry folder doesn't exist, create it
+if (!isValidDir("sentry")) {
+    console.log("Creating sentry directory");
+    fs.mkdirSync("sentry");
 }
 
 
-process.once( 'SIGTERM', function ( sig ) {
+// Login the bots
+for (var x = 0; x < bot_number; x++) {
+    botData[x]["obj"].send(["login"]);
+}
+
+process.once("SIGTERM", function(sig) {
     // Graceful shutdown of Kue
-    queue.shutdown( 5000, function(err) {
-        console.log( 'Kue shutdown: ', err||'' );
-        process.exit( 0 );
+    queue.shutdown(5000, function(err) {
+        console.log("Kue shutdown: ", err || "");
+        process.exit(0);
     });
 });

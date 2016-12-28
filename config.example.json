@@ -1,0 +1,44 @@
+{
+	"http": {
+		"enable": true,
+		"port": 1739
+	},
+	"https": {
+		"enable": false,
+		"port": 1738,
+		"key_path": "certs/sslnopass.key",
+		"cert_path": "certs/api.example.com.crt",
+		"ca_path": "certs/example.cer"
+	},
+	"socketio": {
+		"enable": false,
+		"origins": "example.com:80"
+	},
+	"logins": [
+		{
+			"user": "USERNAME",
+			"pass": "PASSWORD",
+			"auth": "2FA_TOKEN"
+		},
+		{
+			"user": "USERNAME_2",
+			"pass": "PASSWORD_2",
+			"auth": "2FA_TOKEN_2"
+		}
+	],
+	"max_attempts": 1,
+	"max_attempts_comment": "Amount of attempts for each request to Valve",
+	"request_delay": 1100,
+	"request_delay_comment": "Amount of milliseconds to wait between subsequent requests to Valve (per bot)",
+	"allowed_origins": [
+		"http://example.com",
+		"https://example.com",
+		"chrome-extension://jjicbefpemnphinccgikpdaagjebbnhg",
+		"http://steamcommunity.com",
+		"https://steamcommunity.com"
+	],
+	"database": {
+		"url": "localhost",
+		"port": 27017
+	}
+}
