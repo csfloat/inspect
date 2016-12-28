@@ -264,7 +264,19 @@ bot.on("logOnResponse", function(response) {
         CSGOCli.launch();
     }
     else {
-        util.log("error logging in " + login_info["user"], response);
+        util.log("Error logging in " + login_info["user"], response);
+
+        var login_error_msgs = {
+            61: "Invalid Password",
+            63: "Account login denied due to 2nd factor authentication failure. If using email auth, an email has been sent.",
+            65: "Account login denied due to auth code being invalid",
+            66: "Account login denied due to 2nd factor auth failure and no mail has been sent"
+        };
+
+        if (response.eresult && login_error_msgs[response.eresult] != undefined) {
+            console.log(login_info["user"] + ": " + login_error_msgs[response.eresult]);
+        }
+
         process.send(["unready", login_info["index"]]);
     }
 });
