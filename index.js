@@ -251,7 +251,8 @@ var https_server;
 if (CONFIG.https.enable) {
     var credentials = {
         key: fs.readFileSync(CONFIG.https.key_path, 'utf8'),
-        cert: fs.readFileSync(CONFIG.https.cert_path, 'utf8')
+        cert: fs.readFileSync(CONFIG.https.cert_path, 'utf8'),
+        ca: fs.readFileSync(CONFIG.https.ca_path, 'utf8')
     };
 
     https_server = require("https").Server(credentials, app);
