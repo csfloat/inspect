@@ -9,7 +9,7 @@ var Steam = require("steam"),
     CSGOCli = new csgo.CSGOClient(steamUser, steamGC, false),
     crypto = require("crypto"),
     Long = require("long"),
-    parse_vdf = require("vdf");
+    parse_vdf = require("simple-vdf");
 
 var login_info = JSON.parse(process.argv[2]); // obtain login info
 var jobdata = {}; // Dict containing data about the current job
