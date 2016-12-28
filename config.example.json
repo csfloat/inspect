@@ -1,0 +1,38 @@
+{
+	"http": {
+		"port": 1739
+	},
+	"https": {
+		"enable": false,
+		"port": 1738,
+		"key_path": "certs/sslnopass.key",
+		"cert_path": "certs/api.example.com.crt"
+	},
+	"socketio": {
+		"enable": false,
+		"origins": "example.com:80"
+	},
+	"logins": [
+		{
+			"user": "USERNAME",
+			"pass": "PASSWORD",
+			"auth": "2FA_TOKEN"
+		},
+		{
+			"user": "USERNAME_2",
+			"pass": "PASSWORD_2",
+			"auth": "2FA_TOKEN_2"
+		}
+	],
+	"allowed_origins": [
+		"http://example.com",
+		"https://example.com",
+		"chrome-extension://jjicbefpemnphinccgikpdaagjebbnhg",
+		"http://steamcommunity.com",
+		"https://steamcommunity.com"
+	],
+	"database": {
+		"url": "localhost",
+		"port": 27017
+	}
+}

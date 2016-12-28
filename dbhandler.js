@@ -1,22 +1,23 @@
-var mongo = require('mongodb');
+var mongo = require("mongodb");
 
-var server = mongo.Server,
-    Db = mongo.Db;
+var server;
+var db;
 
-var server = new server('localhost', 27017, {auto_reconnect: true});
-db = new Db('CSGOFloatdb', server);
+exports.initialize = function(url, port, settings) {
+    server = new mongo.Server(url, port, settings);
+    db = new mongo.Db("CSGOFloatdb", server);
 
-db.open(function(err, db) {
-    if(!err) {
-        console.log("Connected to 'CSGOFloatdb' database");
-        db.collection('marketfloats', {strict:true}, function(err, collection) {
-            if (err) {
-                console.log("There are currently no floats in the db");
-            }
-        });
-    }
-});
-
+    db.open(function(err, db) {
+        if(!err) {
+            console.log("Connected to 'CSGOFloatdb' database");
+            db.collection('marketfloats', {strict:true}, function(err, collection) {
+                if (err) {
+                    console.log("There are currently no floats in the db");
+                }
+            });
+        }
+    });
+}
 
 exports.insertFloat = function(itemdata, callback) {
     // Insert new float in the DB
@@ -32,7 +33,7 @@ exports.insertFloat = function(itemdata, callback) {
                     callback(err, false);
                 }
             });
-        });  
+        });
     }
     else {
         console.log("This item has no item_name property, not adding to DB");
@@ -45,7 +46,7 @@ exports.checkInserted = function(lookupVars, callback) {
     // rather than placing it in a queue
 
     db.collection('marketfloats', function(err, collection) {
-        collection.findOne({s: lookupVars[0], a: lookupVars[1], d: lookupVars[2], m: lookupVars[3]}, function(err, doc) {
+        collection.findOne({ s: lookupVars.s, a: lookupVars.a, d: lookupVars.d, m: lookupVars.m }, function(err, doc) {
             // this will just be array of elements
             if(doc === null){
                 callback(null, false);

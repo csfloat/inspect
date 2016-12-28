@@ -9,15 +9,13 @@ var Steam = require("steam"),
     CSGOCli = new csgo.CSGOClient(steamUser, steamGC, false),
     crypto = require("crypto"),
     Long = require("long"),
-    parse_vdf = require("./vdf.js");
-
+    parse_vdf = require("vdf");
 
 var login_info = JSON.parse(process.argv[2]); // obtain login info
 var jobdata = {}; // Dict containing data about the current job
 var weapon_images = {}; // Dict containing weapon images
 var items_game_parsed = {}; // Dict containing a VDF parsed CSGO items_game copy
 var csgo_english = {}; // Dict containing a VDF parsed CSGO csgo_english copy
-
 
 // Parse items_game_cdn
 try {
@@ -36,7 +34,6 @@ try {
     process.exit(1);
 }
 
-
 // Parse items_game file
 fs.readFile('gamefiles/items_game.txt', 'utf8', function(err, contents) {
     if (err) {
@@ -44,9 +41,7 @@ fs.readFile('gamefiles/items_game.txt', 'utf8', function(err, contents) {
     }
     // Parse the VDF file
     items_game_parsed = parse_vdf.parse(contents);
-
 });
-
 
 // Parse csgo_english file
 fs.readFile('gamefiles/csgo_english.txt', {encoding: 'utf-8'}, function(err, contents) {
@@ -56,7 +51,6 @@ fs.readFile('gamefiles/csgo_english.txt', {encoding: 'utf-8'}, function(err, con
     }
     csgo_english = parse_vdf.parse(contents);
 });
-
 
 // Handle child-parent communications
 process.on('message', function(m) {
@@ -72,14 +66,12 @@ process.on('message', function(m) {
     }
 });
 
-
 /*
     Emit message to the current websocket client for this request
 */
 function emitMessage(type, msg) {
     process.send(["genericmsg", type, msg, jobdata["socketid"]]);
 }
-
 
 /*
     Parse and find the itemname from Valve's response
@@ -91,7 +83,7 @@ function parseItemData(itemdata) {
 
     var long_itemid = parsed_json.iteminfo.itemid;
     var itemid = new Long(long_itemid.low, long_itemid.high, long_itemid.unsigned).toInt();
-   
+
     // Get the item name
     if (parsed_json.iteminfo.paintindex in items_game_parsed["items_game"]["paint_kits"]) {
         var skin_name = "_" + items_game_parsed["items_game"]["paint_kits"][parsed_json.iteminfo.paintindex]["name"];
@@ -103,7 +95,7 @@ function parseItemData(itemdata) {
         var skin_name = "";
     }
 
-      if (parsed_json.iteminfo.defindex in items_game_parsed["items_game"]["items"]) {
+    if (parsed_json.iteminfo.defindex in items_game_parsed["items_game"]["items"]) {
         var weapon_name = items_game_parsed["items_game"]["items"][parsed_json.iteminfo.defindex]["name"];
     }
 
@@ -138,7 +130,7 @@ function parseItemData(itemdata) {
     else {
         parsed_json["iteminfo"]["max"] = 0.800000;
     }
-   
+
     if (parsed_json.iteminfo.defindex in items_game_parsed["items_game"]["items"]) {
         var weapon_data = items_game_parsed["items_game"]["items"][parsed_json.iteminfo.defindex];
     }
@@ -180,7 +172,6 @@ function parseItemData(itemdata) {
 
     emitItemData(parsed_json);
 }
-
 
 /*
     Send back itemdata to the parent
@@ -226,35 +217,6 @@ CSGOCli.on("unhandled", function(kMsg) {
     util.log("UNHANDLED MESSAGE " + kMsg);
 });
 
-
-var onSteamLogOn = function onSteamLogOn(response){
-        if (response.eresult == Steam.EResult.OK) {
-            util.log('Logged in!');
-
-            steamFriends.setPersonaState(Steam.EPersonaState.Busy);
-            util.log("Logged on.");
-
-            util.log("Current SteamID64: " + bot.steamID);
-            util.log("Account ID: " + CSGOCli.ToAccountID(bot.steamID));
-
-            CSGOCli.launch();
-        }
-        else
-        {
-            util.log('error with  ' + login_info["user"], response);
-            process.send(["unready", login_info["index"]]);
-        }
-    },
-    onSteamSentry = function onSteamSentry(sentry) {
-        util.log("Received sentry.");
-        require('fs').writeFileSync('sentry', sentry);
-    },
-    onSteamServers = function onSteamServers(servers) {
-        util.log("Received servers.");
-        fs.writeFile('servers.json', JSON.stringify(servers, null, 2));
-    }
-
-
 var logOnDetails = {
     "account_name": login_info["user"],
     "password": login_info["pass"],
@@ -265,17 +227,14 @@ if (login_info["auth"] != "") {
     logOnDetails.auth_code = login_info["auth"];
 }
 
+var sentry_path = "sentry/" + login_info["user"] + ".sentry";
 
-function getSentryID() {
-    return ('sentry/' + login_info["user"] + ".sentry");
-}
-
-console.log(login_info["index"] + " with sentry id of " + getSentryID());
+console.log("Starting bot " + login_info["index"] + " with sentry id of " + sentry_path);
 
 var sentry = null;
 
-if (fs.existsSync(getSentryID())) {
-    sentry = fs.readFileSync(getSentryID());
+if (fs.existsSync(sentry_path)) {
+    sentry = fs.readFileSync(sentry_path);
 }
 else {
     console.log("There is no sentry file for this bot");
@@ -287,25 +246,49 @@ if (sentry != undefined && sentry.length) {
 
 
 // Steam Event Handler
-steamUser.on('updateMachineAuth', function(response, callback){
-    // One sentry file can store the login info for 3 bots, so we need to make multiple copies 
-    fs.writeFileSync(getSentryID(), response.bytes);
+steamUser.on("updateMachineAuth", function(response, callback){
+    // One sentry file can store the login info for 3 bots, so we need to make multiple copies
+    fs.writeFileSync(sentry_path, response.bytes);
     callback({ sha_file: MakeSha(response.bytes) });
 });
 
+bot.on("logOnResponse", function(response) {
+    if (response.eresult == Steam.EResult.OK) {
+        util.log('Logged in!');
 
-bot.on("logOnResponse", onSteamLogOn)
-    .on('sentry', onSteamSentry)
-    .on('servers', onSteamServers)
-    .on('error', function () {
-        // log on again
-        process.send(["unready", login_info["index"]]);
-    })
-    .on('loggedOff', function () {
-        // log on again
-        process.send(["unready", login_info["index"]]);
-    })
-    .on('connected', function(){
-        steamUser.logOn(logOnDetails);
-    });
+        steamFriends.setPersonaState(Steam.EPersonaState.Busy);
 
+        util.log("Current SteamID64: " + bot.steamID);
+        util.log("Account ID: " + CSGOCli.ToAccountID(bot.steamID));
+
+        CSGOCli.launch();
+    }
+    else {
+        util.log("error logging in " + login_info["user"], response);
+        process.send(["unready", login_info["index"]]);
+    }
+});
+
+bot.on("sentry", function(sentry) {
+    util.log("Received sentry.");
+    fs.writeFileSync("sentry", sentry);
+});
+
+bot.on("servers", function(servers) {
+    util.log("Received servers.");
+    fs.writeFile("servers.json", JSON.stringify(servers, null, 2));
+});
+
+bot.on("error", function() {
+    // log on again
+    process.send(["unready", login_info["index"]]);
+});
+
+bot.on("loggedOff", function() {
+    // log on again
+    process.send(["unready", login_info["index"]]);
+});
+
+bot.on("connected", function(){
+    steamUser.logOn(logOnDetails);
+});
