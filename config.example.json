@@ -1,5 +1,6 @@
 {
 	"http": {
+		"enable": true,
 		"port": 1739
 	},
 	"https": {
