@@ -37,6 +37,12 @@ if (bot_number == 0) {
     process.exit(1);
 }
 
+// Make sure at least one of HTTP or HTTPS is enabled
+if (!CONFIG.https.enable && !CONFIG.http.enable) {
+    console.log('You must enable at least one of HTTP or HTTPS in the config');
+    process.exit(1);
+}
+
 function forkChild(index) {
     // Get the bot login info
     var cur_login = CONFIG.logins[index];
@@ -260,10 +266,18 @@ if (CONFIG.https.enable) {
 
 var io;
 
-if (https_server && CONFIG.socketio.enable) {
-    io = require("socket.io")(https_server);
+if (CONFIG.socketio.enable) {
+    if (https_server) {
+        io = require("socket.io")(https_server);
+    }
+    else {
+        // Fallback onto HTTP for socket.io
+        io = require("socket.io")(http_server);
+    }
 
-    io.set("origins", CONFIG.socketio.origins);
+    if (CONFIG.socketio.origins != "") {
+        io.set("origins", CONFIG.socketio.origins);
+    }
 }
 
 /*
@@ -301,7 +315,7 @@ function LookupHandler(link, socket) {
 }
 
 /*
-Creates a Kue job given a float request
+    Creates a Kue job given a float request
 */
 function create_job(socket, request, lookupVars) {
     // Support for http and websockets
@@ -333,7 +347,7 @@ function create_job(socket, request, lookupVars) {
 }
 
 /*
-Resets the queue (initiated once the bots login)
+    Resets the queue (initiated once the bots login)
 */
 function resetQueue() {
     if (CONFIG.http.enable) {
@@ -348,6 +362,13 @@ function resetQueue() {
 
     // Socket.io event handler
     if (CONFIG.socketio.enable) {
+        if (CONFIG.https.enable) {
+            console.log("Listening for HTTPS websocket connections on port: " + CONFIG.https.port);
+        }
+        else {
+            console.log("Listening for HTTP websocket connections on port: " + CONFIG.http.port);
+        }
+
         io.on('connection', function(socket) {
             socket.emit('joined');
             socket.emit('infomessage', 'You no longer have to login! Have fun!');
@@ -464,7 +485,7 @@ queue.on('job error', function(id, err){
 
 
 /*
-Restarts the queue
+    Restarts the queue
 */
 function restart_queue() {
     /*
