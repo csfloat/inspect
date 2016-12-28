@@ -152,10 +152,12 @@ In order to retrieve float values for weapons in this way, you must have Steam a
 
 * node-csgo (v1.4 or higher)
 * socket.io
+* vdf
+* kue
+* long
 * express
 * mongodb
 * redis
-* kue
 
 You can install the Node.js dependencies using `npm install` or `yarn install`
 
