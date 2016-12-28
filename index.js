@@ -17,7 +17,7 @@ var failedAttempts = {};
 // BOT Variables
 var bot_number = CONFIG.logins.length; // Stores the number of bots
 var botData = []; // Stores current bot about regarding their job, child, ready/busy state, and done objects
-var requestWait = 1100 // Milliseconds to wait between requests to Valve
+var requestWait = CONFIG.request_delay // Milliseconds to wait between requests to Valve
 var onlyRestart = false;
 
 // Push default bot values of them being offline
