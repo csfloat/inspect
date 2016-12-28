@@ -144,17 +144,20 @@ The API might be unstable at times, so it is important that you handle the error
 
 
 
-# How to Use
+# How to Run
 
 In order to retrieve float values for weapons in this way, you must have Steam account(s) with a copy of CS:GO. Each account can request 1 float per second. CSGOFloat allows you to have as many bots as you'd like by inputting the login info into config.json.
 
 ##### Dependencies:
 
 * node-csgo (v1.4 or higher)
+* socket.io
 * express
 * mongodb
 * redis
 * kue
+
+You can install the Node.js dependencies using `npm install` or `yarn install`
 
 ##### Steps:
 
