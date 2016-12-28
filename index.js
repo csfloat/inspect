@@ -6,7 +6,13 @@ var kue = require('kue'),
     inspect_url = require("./inspect_url");
 
 // Get the bot login info
-var CONFIG = JSON.parse(fs.readFileSync('config.json', 'utf8'));
+try {
+    CONFIG = JSON.parse(fs.readFileSync('config.json', 'utf8'));
+}
+catch (e) {
+    console.log("Couldn't load config.json! Exiting...");
+    process.exit(1);
+}
 
 // API Variables
 var isValveOnline = false; // boolean that defines whether all the bots are offline or not
@@ -33,7 +39,7 @@ for (var i = 0; i < bot_number; i++) {
 
 
 if (bot_number == 0) {
-    console.log('There are no bot logins, please input some into logins.json. Exiting...');
+    console.log('There are no bot logins, please input some into config.json. Exiting...');
     process.exit(1);
 }
 

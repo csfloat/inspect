@@ -27,6 +27,7 @@
 		}
 	],
 	"max_attempts": 1,
+	"max_attempts_comment": "Amount of attempts for each request to Valve",
 	"request_delay": 1100,
 	"request_delay_comment": "Amount of milliseconds to wait between subsequent requests to Valve (per bot)",
 	"allowed_origins": [
