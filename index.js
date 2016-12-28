@@ -67,7 +67,7 @@ function forkChild(index) {
             if (isActive) {
                 // All the bots are online and ready
                 console.log("Bots are ready to accept requests");
-                io.emit('successmessage', "Valve's servers are online!");
+                if (io) io.emit('successmessage', "Valve's servers are online!");
                 isValveOnline = true;
 
                 // If a bot errored out, only restart the queue
@@ -160,7 +160,7 @@ function forkChild(index) {
             onlyRestart = true;
 
             // Tell websocket users
-            if (isValveOnline) {
+            if (isValveOnline && io) {
                 io.emit('errormessage', "Valve's servers appear to be offline");
             }
 
@@ -266,7 +266,7 @@ if (https_server && CONFIG.socketio.enable) {
 }
 
 /*
-Handles websocket float request
+    Handles websocket float request
 */
 function LookupHandler(link, socket) {
     lookupVars = inspect_url.parse(link);
@@ -305,7 +305,7 @@ Creates a Kue job given a float request
 function create_job(socket, request, lookupVars) {
     // Support for http and websockets
 
-    // Create job with TTL of 3000, it will be considered a fail if a child process
+    // Create job with TTL of 2000, it will be considered a fail if a child process
     // doesn't return a value within 3sec
 
     var job = queue.create('floatlookup', {
@@ -502,6 +502,24 @@ function restart_queue() {
         }
     });
 }
+
+/*
+    Returns a boolean as to whether the specified path is a directory and exists
+*/
+function isValidDir(path) {
+    try {
+        return fs.statSync(path).isDirectory();
+    } catch (e) {
+        return false;
+    }
+}
+
+// If the sentry folder doesn't exist, create it
+if (!isValidDir("sentry")) {
+    console.log("Creating sentry directory");
+    fs.mkdirSync("sentry");
+}
+
 
 // Login the bots
 for (var x = 0; x < bot_number; x++) {
