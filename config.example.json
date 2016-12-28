@@ -24,6 +24,7 @@
 			"auth": "2FA_TOKEN_2"
 		}
 	],
+	"max_attempts": 1,
 	"allowed_origins": [
 		"http://example.com",
 		"https://example.com",

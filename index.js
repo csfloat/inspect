@@ -11,7 +11,7 @@ var CONFIG = JSON.parse(fs.readFileSync('config.json', 'utf8'));
 // API Variables
 var isValveOnline = false; // boolean that defines whether all the bots are offline or not
 var apiObjs = {}; // Holds the request objects
-var maxATTEMPTS = 1; // Number of attempts for each request
+var maxATTEMPTS = CONFIG.max_attempts; // Number of attempts for each request
 var failedAttempts = {};
 
 // BOT Variables
