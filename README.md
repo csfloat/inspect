@@ -146,7 +146,7 @@ The API might be unstable at times, so it is important that you handle the error
 
 # How to Use
 
-In order to retrieve float values for weapons in this way, you must have Steam account(s) with a copy of CS:GO. Each account can request 1 float per second. CSGOFloat allows you to have as many bots as you'd like by inputting the login info into logins.json.
+In order to retrieve float values for weapons in this way, you must have Steam account(s) with a copy of CS:GO. Each account can request 1 float per second. CSGOFloat allows you to have as many bots as you'd like by inputting the login info into config.json.
 
 ##### Dependencies:
 
@@ -158,8 +158,8 @@ In order to retrieve float values for weapons in this way, you must have Steam a
 
 ##### Steps:
 
-1. Add your bot(s) info into logins.txt
-2. Edit your [HTTP port](https://github.com/Step7750/CSGOFloat/blob/master/index.js#L17), [HTTPS PORT](https://github.com/Step7750/CSGOFloat/blob/master/index.js#L18), and [Max Attempts per Request](https://github.com/Step7750/CSGOFloat/blob/master/index.js#L21)
-3. [Add in the path for your HTTPS certificates](https://github.com/Step7750/CSGOFloat/blob/master/index.js#L34)
+1. Add your bot(s) info into config.json
+2. Edit config.json with your desired settings
+3. Update the gamefiles directory from a CSGO installation (ensure the csgo_english file is encoded in UTF-8)
 4. Ensure mongodb and redis are running
 5. Navigate to the IP that it is being hosted on and query the API using the docs above!
