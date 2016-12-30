@@ -42,7 +42,7 @@ module.exports = {
 		"http://steamcommunity.com",
 		"https://steamcommunity.com"
 	],
-	// Redis DB connection info
+	// MongoDB connection info
 	"database": {
 		"url": "localhost",
 		"port": 27017
