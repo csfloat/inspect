@@ -3,16 +3,8 @@ var kue = require('kue'),
     cp = require('child_process'),
     dbhandler = require('./dbhandler'),
     fs = require('fs'),
-    inspect_url = require("./inspect_url");
-
-// Get the bot login info
-try {
-    CONFIG = JSON.parse(fs.readFileSync('config.json', 'utf8'));
-}
-catch (e) {
-    console.log("Couldn't load config.json! Exiting...");
-    process.exit(1);
-}
+    inspect_url = require("./inspect_url"),
+    CONFIG = require("./config");
 
 // API Variables
 var isValveOnline = false; // boolean that defines whether all the bots are offline or not

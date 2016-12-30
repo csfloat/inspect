@@ -146,7 +146,7 @@ The API might be unstable at times, so it is important that you handle the error
 
 # How to Run
 
-In order to retrieve float values for weapons in this way, you must have Steam account(s) with a copy of CS:GO. Each account can request 1 float per second. CSGOFloat allows you to have as many bots as you'd like by inputting the login info into config.json.
+In order to retrieve float values for weapons in this way, you must have Steam account(s) with a copy of CS:GO. Each account can request 1 float per second. CSGOFloat allows you to have as many bots as you'd like by inputting the login info into config.js.
 
 ##### Dependencies:
 
@@ -163,8 +163,14 @@ You can install the Node.js dependencies using `npm install` or `yarn install`
 
 ##### Steps:
 
-1. Add your bot(s) info into config.json
-2. Edit config.json with your desired settings
-3. Update the gamefiles directory from a CSGO installation (ensure the csgo_english file is encoded in UTF-8)
-4. Ensure mongodb and redis are running
-5. Navigate to the IP that it is being hosted on and query the API using the docs above!
+1. Copy `config.example.js` to `config.js`
+2. Add your bot(s) login information to `config.js`
+3. Edit `config.js` with your desired settings
+4. Update the `gamefiles/` directory from a CS:GO installation (ensure the csgo_english file is encoded in UTF-8)
+5. Ensure MongoDB and redis are running
+6. Run `node index.js` in the main directory
+7. Navigate to the IP that the server is hosted on and query the API using the docs above!
+
+**Note**: When you first login a bot, it will send a 2FA code to your email. Enter the 2FA code into the "auth" field for that bot and restart CSGOFloat to successfully login.
+
+**Currently only Steam accounts without Mobile 2FA are Supported!**
