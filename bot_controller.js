@@ -5,14 +5,14 @@ class BotController {
         this.bots = [];
     }
 
-    addBot(loginData) {
-        let bot = new Bot();
+    addBot(loginData, settings) {
+        let bot = new Bot(settings);
         bot.logIn(loginData.user, loginData.pass, loginData.auth);
         this.bots.push(bot);
     }
 
     getFreeBot() {
-        for (var bot of this.bots) {
+        for (let bot of this.bots) {
             if (!bot.busy && bot.clientReady) return bot;
         }
 
@@ -20,7 +20,7 @@ class BotController {
     }
 
     isBotOnline() {
-        for (var bot of this.bots) {
+        for (let bot of this.bots) {
             if (bot.clientReady) return true;
         }
 
@@ -28,12 +28,10 @@ class BotController {
     }
 
     lookupFloat(data) {
-        var freeBot = this.getFreeBot();
+        let freeBot = this.getFreeBot();
 
         if (freeBot) return freeBot.sendFloatRequest(data);
-        else {
-            return Promise.reject("There are no bots to fulfill this request");
-        }
+        else return Promise.reject("There are no bots to fulfill this request");
     }
 }
 

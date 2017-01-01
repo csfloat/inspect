@@ -4,10 +4,13 @@ const fs = require("fs"),
     crypto = require("crypto");
 
 class Bot {
-    constructor() {
+    constructor(settings) {
+        this.settings = settings;
         this.steamReady = false;
         this.clientReady = false;
         this.busy = false;
+        this.currentRequest = false;
+        this.ttlTimeout = false;
 
         this.steamClient = new Steam.SteamClient();
         this.steamUser = new Steam.SteamUser(this.steamClient);
@@ -15,14 +18,29 @@ class Bot {
         this.csgoClient = new csgo.CSGOClient(this.steamUser, this.steamGC, false);
 
         this.csgoClient.on("itemData", (itemData) => {
-            this.busy = false;
-
-            if (this.resolve) {
+            if (this.resolve && this.currentRequest) {
                 // TODO: Add error checking to make sure the ID of itemData is what we want
-                this.resolve(itemData);
 
-                // If Valve sends this data twice or extremely delayed, we want to ignore it
+                // Clear any TTL timeout
+                if (this.ttlTimeout) clearInterval(this.ttlTimeout);
+
+                // Figure out how long to delay until this bot isn't busy anymore
+                let offset = new Date().getTime() - this.currentRequest.time;
+                let delay = this.settings.request_delay - offset;
+
+                // If we're past the request delay, don't delay
+                if (delay < 0) delay = 0;
+
+                itemData.delay = delay;
+
+                this.resolve(itemData);
                 this.resolve = false;
+                this.currentRequest = false;
+
+                setTimeout(() => {
+                    // We're no longer busy (satisfied request delay)
+                    this.busy = false;
+                }, delay);
             }
         });
 
@@ -86,8 +104,17 @@ class Bot {
 
             console.log("Fetching for", data.s, data.a, data.d, data.m);
 
+            this.currentRequest = {id: data.a, time: new Date().getTime()};
+
             if (!this.clientReady) reject("This bot is not ready");
             else this.csgoClient.itemDataRequest(data.s, data.a, data.d, data.m);
+
+            // Set a timeout in case this request takes too long
+            this.ttlTimeout = setTimeout(() => {
+                // Valve didn't respond in time, reset
+                this.busy = false;
+                this.currentRequest = false;
+            }, this.settings.request_ttl);
         });
     }
 }

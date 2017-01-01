@@ -1,5 +1,6 @@
 const fs = require("fs"),
-    queue = require("kue").createQueue(),
+    kue = require("kue"),
+    queue = kue.createQueue(),
     BotController = require("./bot_controller"),
     CONFIG = require("./config");
 
@@ -11,12 +12,12 @@ if (CONFIG.logins.length == 0) {
 const botController = new BotController();
 
 for (let loginData of CONFIG.logins) {
-    botController.addBot(loginData);
+    botController.addBot(loginData, CONFIG.bot_settings);
 }
 
 const createJob = function(data, saveCallback) {
     queue.create("floatlookup", data)
-    .ttl(CONFIG.request_ttl)
+    .ttl(CONFIG.bot_settings.request_ttl)
     .attempts(2)
     .removeOnComplete(true)
     .save(saveCallback);
@@ -44,13 +45,24 @@ queue.process("floatlookup", CONFIG.logins.length, (job, done) => {
     botController.lookupFloat(job.data)
     .then((itemData) => {
         console.log("Recieved itemData: ", itemData);
-        done();
+
+        setTimeout(() => {
+            done();
+        }, itemData.delay);
     })
     .catch((err) => {
         console.log("Job Error: " + err);
         done(String(err));
     });
-})
+});
+
+queue.on('job failed attempt', function(id, result){
+    console.log("Job", id, "Failed Attempt!");
+});
+
+queue.on('job failed', function(id, result){
+    console.log("Job", id, "Failed!");
+});
 
 process.once("SIGTERM", (sig) => {
     queue.shutdown(5000, (err) => {

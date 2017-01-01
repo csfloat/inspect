@@ -30,12 +30,15 @@ module.exports = {
             "auth": "2FA_TOKEN_2"
         }
     ],
-    // Amount of attempts for each request to Valve
-    "max_attempts": 1,
-    // Amount of milliseconds to wait between subsequent requests to Valve (per bot)
-    "request_delay": 1100,
-    // Amount of milliseconds to wait until a request to Valve is timed out
-    "request_ttl": 2000,
+    // Bot settings
+    "bot_settings": {
+        // Amount of attempts for each request to Valve
+        "max_attempts": 1,
+        // Amount of milliseconds to wait between subsequent requests to Valve (per bot)
+        "request_delay": 1100,
+        // Amount of milliseconds to wait until a request to Valve is timed out
+        "request_ttl": 2000
+    },
     // Origins allowed to connect to the HTTP/HTTPS API
     "allowed_origins": [
         "http://example.com",
