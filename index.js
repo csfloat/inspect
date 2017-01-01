@@ -1,9 +1,7 @@
 const fs = require("fs"),
     queue = require("kue").createQueue(),
-    BotController = require("./bot_controller");
-
-// Get the bot login info
-const CONFIG = JSON.parse(fs.readFileSync("config.json", "utf8"));
+    BotController = require("./bot_controller"),
+    CONFIG = require("./config");
 
 if (CONFIG.logins.length == 0) {
     console.log("There are no bot logins. Please add some in config.json");
