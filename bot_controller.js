@@ -11,8 +11,29 @@ class BotController {
         this.bots.push(bot);
     }
 
+    getFreeBot() {
+        for (var bot of this.bots) {
+            if (!bot.busy && bot.clientReady) return bot;
+        }
+
+        return false;
+    }
+
+    isBotOnline() {
+        for (var bot of this.bots) {
+            if (bot.clientReady) return true;
+        }
+
+        return false;
+    }
+
     lookupFloat(data) {
-        return this.bots[0].sendFloatRequest(data);
+        var freeBot = this.getFreeBot();
+
+        if (freeBot) return freeBot.sendFloatRequest(data);
+        else {
+            return Promise.reject("There are no bots to fulfill this request");
+        }
     }
 }
 

@@ -16,14 +16,14 @@ for (let loginData of CONFIG.logins) {
 
 const createJob = function(data, saveCallback) {
     queue.create("floatlookup", data)
-    .ttl(2000)
+    .ttl(CONFIG.request_ttl)
     .attempts(2)
     .removeOnComplete(true)
     .save(saveCallback);
 };
 
-botController.bots[0].readyToKickAss = () => {
-    console.log("ready to kick ass")
+botController.bots[0].exampleTest = () => {
+    console.log("ready to kick ass");
 
     createJob({
         s: "0",
@@ -42,12 +42,13 @@ botController.bots[0].readyToKickAss = () => {
 
 queue.process("floatlookup", CONFIG.logins.length, (job, done) => {
     botController.lookupFloat(job.data)
-    .then((floatValue) => {
-        console.log("hi", floatValue);
+    .then((itemData) => {
+        console.log("Recieved itemData: ", itemData);
         done();
     })
     .catch((err) => {
-        done(err);
+        console.log("Job Error: " + err);
+        done(String(err));
     });
 })
 
