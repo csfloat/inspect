@@ -5,7 +5,7 @@ exports.parse = function(link) {
     if (!link) { return; }
 
     // For the API, + signs get converted to a space in Express, so we account for that
-	var regexed = link.match(/steam:\/\/rungame\/730\/\d*\/[+ ]csgo_econ_action_preview [SM]\d*[A]\d*[D]\d*/g);
+	var regexed = link.match(/steam:\/\/rungame\/730\/\d+\/[+ ]csgo_econ_action_preview [SM]\d+[A]\d+[D]\d+/g);
 
     // Return variable
     var returnVars;
