@@ -2,6 +2,7 @@ const fs = require("fs"),
     kue = require("kue"),
     queue = kue.createQueue(),
     BotController = require("./bot_controller"),
+    InspectURL = require("./inspect_url"),
     CONFIG = require("./config");
 
 if (CONFIG.logins.length == 0) {
@@ -39,6 +40,12 @@ botController.bots[0].exampleTest = () => {
         d: "14312561011969544059",
         m: "784021865847463229"
     });
+
+    let testURL = new InspectURL("0", "8449500490", "14312561011969544059", "784021865847463229");
+    console.log(testURL.getLink());
+
+    let testURL2 = new InspectURL("steam://rungame/730/76561202255233023/+csgo_econ_action_preview S76561198084749846A698323590D7935523998312483177");
+    console.log(testURL2.getParams());
 }
 
 queue.process("floatlookup", CONFIG.logins.length, (job, done) => {

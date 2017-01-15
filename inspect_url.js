@@ -1,64 +1,53 @@
-/*
-Returns s, m, a, d parameters given an inspect link
-*/
-exports.parse = function(link) {
-    if (!link) { return; }
+class InspectURL {
+    constructor() {
+        this.properParams = false;
 
-    // For the API, + signs get converted to a space in Express, so we account for that
-	var regexed = link.match(/steam:\/\/rungame\/730\/\d*\/[+ ]csgo_econ_action_preview [SM]\d*[A]\d*[D]\d*/g);
+    	if (arguments.length == 1) {
+    		// parse the inspect link
+    		this.parseLink(arguments[0]);
+    	}
+    	else if (arguments.length == 4) {
+            this.s = arguments[0];
+            this.a = arguments[1];
+            this.d = arguments[2];
+            this.m = arguments[3];
 
-    // Return variable
-    var returnVars;
+            this.properParams = true;
+    	}
+    }
 
-    if (regexed != null && regexed[0] == link) {
-        // the string still appears to be a valid structure
-        // check whether it is a market or inventory request
-        var lookup_type = link.match(/[+ ]csgo_econ_action_preview (.)\d*/);
+    parseLink(link) {
+        // Regex parse the url
+        var groups = /steam:\/\/rungame\/730\/\d+\/[+ ]csgo_econ_action_preview ([SM])(\d+)A(\d+)D(\d+)/.exec(link);
 
-        if (lookup_type[1] != null) {
-            // get the data of the individual vars of the lookup string
-            var variable_type = link.match(/[MS](.*)A/);
-            var a = link.match(/[A](.*)D/);
-            var d = link.match(/[D](.*)/);
-
-            if (typeof variable_type[1] == "string" && typeof a[1] == "string" && typeof d[1] == "string") {
-                // Verify that we are dealing with strings
-                var svar = "0";
-                var mvar = "0";
-                var dvar = d[1];
-                var avar = a[1];
-
-                // Process whether this is from a market or inventory item
-                if (lookup_type[1] == "M") {
-                    mvar = variable_type[1];
-                }
-                else {
-                    svar = variable_type[1];
-                }
-
-                // Overwrite the return val
-                returnVars = { "s": svar, "a": avar, "d": dvar, "m": mvar };
+        if (groups) {
+            if (groups[1] == "S") {
+                this.s = groups[2];
+                this.m = "0";
             }
+            else if (groups[1] == "M") {
+                this.m = groups[2];
+                this.s = "0";
+            }
+
+            this.a = groups[3];
+            this.d = groups[4];
+
+            this.properParams = true;
         }
     }
 
-    return returnVars;
-}
-
-/*
-Returns an inspect url given the params
-*/
-exports.build = function(params) {
-    if (!(params && "a" in params && "d" in params && ("m" in params || "s" in params))) { return; }
-
-	var url = ""
-
-    if (!("s" in params) || params.s == "0") {
-        url = "steam://rungame/730/76561202255233023/+csgo_econ_action_preview M" + params.m + "A" + params.a + "D" + params.d;
-    }
-    else {
-        url = "steam://rungame/730/76561202255233023/+csgo_econ_action_preview S" + params.s + "A" + params.a + "D" + params.d;
+    getParams() {
+        if (this.properParams) return {s: this.s, a: this.a, d: this.d, m: this.m};
+        else return;
     }
 
-    return url;
+    getLink() {
+        if (!this.properParams) return;
+
+        if (this.s == "0") return "steam://rungame/730/76561202255233023/+csgo_econ_action_preview M" + this.m + "A" + this.a + "D" + this.d;
+        else return "steam://rungame/730/76561202255233023/+csgo_econ_action_preview S" + this.s + "A" + this.a + "D" + this.d;
+    }
 }
+
+module.exports = InspectURL;
