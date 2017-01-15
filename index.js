@@ -3,6 +3,7 @@ const fs = require("fs"),
     queue = kue.createQueue(),
     BotController = require("./bot_controller"),
     InspectURL = require("./inspect_url"),
+    ResController = require("./res_controller"),
     CONFIG = require("./config");
 
 if (CONFIG.logins.length == 0) {
@@ -11,6 +12,15 @@ if (CONFIG.logins.length == 0) {
 }
 
 const botController = new BotController();
+const resController = new ResController();
+
+const errorMsgs = {
+    1: "Improper Parameter Structure",
+    2: "Invalid Inspect Link Structure",
+    3: "You may only have one pending request at a time",
+    4: "Valve's servers didn't reply in time",
+    5: "Valve's servers appear to be offline, please try again later"
+}
 
 for (let loginData of CONFIG.logins) {
     botController.addBot(loginData, CONFIG.bot_settings);
@@ -48,16 +58,89 @@ botController.bots[0].exampleTest = () => {
     console.log(testURL2.getParams());
 }
 
+
+// Setup and configure express
+var app = require("express")();
+
+app.get("/", function(req, res) {
+    // Allow some origins
+    if (CONFIG.allowed_origins.length > 0 && req.get('origin') != undefined) {
+        // check to see if its a valid domain
+        if (CONFIG.allowed_origins.indexOf(req.get('origin')) !== -1) {
+            res.header('Access-Control-Allow-Origin', req.get('origin'));
+            res.header('Access-Control-Allow-Methods', 'GET');
+        }
+    }
+
+    // Get and parse parameters
+    let thisLink;
+
+    if ("url" in req.query) thisLink = new InspectURL(req.query.url);
+    else if ("a" in req.query && "d" in req.query && ("s" in req.query || "m" in req.query)) thisLink = new InspectURL(req.query);
+
+    // Make sure the params are valid
+    if (!thisLink || !thisLink.getParams()) {
+        res.status(400).json({error: errorMsgs[2], code: 2});
+        return;
+    }
+
+    if (botController.isBotOnline()) {
+        let userIP = req.connection.remoteAddress;
+        let params = thisLink.getParams();
+
+        params["ip"] = userIP;
+        params["type"] = "http";
+
+        resController.addUserRequest(userIP, res, params);
+
+        createJob(params);
+    }
+    else {
+        res.status(503).json({error: errorMsgs[5], code: 5});
+    }
+});
+
+var http_server = require("http").Server(app);
+
+var https_server;
+
+if (CONFIG.https.enable) {
+    var credentials = {
+        key: fs.readFileSync(CONFIG.https.key_path, 'utf8'),
+        cert: fs.readFileSync(CONFIG.https.cert_path, 'utf8'),
+        ca: fs.readFileSync(CONFIG.https.ca_path, 'utf8')
+    };
+
+    https_server = require("https").Server(credentials, app);
+}
+
+if (CONFIG.http.enable) {
+    http_server.listen(CONFIG.http.port);
+    console.log("Listening for HTTP on port: " + CONFIG.http.port);
+}
+
+if (CONFIG.https.enable) {
+    https_server.listen(CONFIG.https.port);
+    console.log("Listening for HTTPS on port: " + CONFIG.https.port);
+}
+
 queue.process("floatlookup", CONFIG.logins.length, (job, done) => {
     botController.lookupFloat(job.data)
     .then((itemData) => {
         console.log("Recieved itemData: ", itemData);
 
+        // Save and remove the delay attribute
+        let delay = itemData.delay;
+        delete itemData.delay;
+
+        resController.respondToUser(job.data.ip, job.data, itemData);
+
         setTimeout(() => {
             done();
-        }, itemData.delay);
+        }, delay);
     })
     .catch((err) => {
+        resController.respondToUser(job.data.ip, job.data, {error: errorMsgs[4], code: 4}, 500);
         console.log("Job Error: " + err);
         done(String(err));
     });
