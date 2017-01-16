@@ -1,10 +1,10 @@
 const fs = require("fs"),
     kue = require("kue"),
     queue = kue.createQueue(),
-    BotController = require("./bot_controller"),
-    InspectURL = require("./inspect_url"),
-    ResController = require("./res_controller"),
-    DBHandler = require("./db"),
+    BotController = require("./lib/bot_controller"),
+    InspectURL = require("./lib/inspect_url"),
+    ResController = require("./lib/res_controller"),
+    DBHandler = require("./lib/db"),
     CONFIG = require("./config");
 
 if (CONFIG.logins.length == 0) {
