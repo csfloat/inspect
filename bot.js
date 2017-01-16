@@ -11,18 +11,124 @@ class Bot {
         this.busy = false;
         this.currentRequest = false;
         this.ttlTimeout = false;
+        this.loggingIn = false;
+    }
+
+    logIn(username, password, auth) {
+        if (this.loggingIn) return;
+
+        this.loggingIn = true;
+        this.steamReady = false;
+        this.clientReady = false;
+
+        if (arguments.length == 3) {
+            this.username = username;
+            this.password = password;
+            this.auth = auth;
+        }
+
+        console.log(`Logging in ${this.username}`);
 
         this.steamClient = new Steam.SteamClient();
         this.steamUser = new Steam.SteamUser(this.steamClient);
         this.steamGC = new Steam.SteamGameCoordinator(this.steamClient, 730);
         this.csgoClient = new csgo.CSGOClient(this.steamUser, this.steamGC, false);
 
+        // set up event handlers
+        this.bindEventHandlers();
+
+        this.sentryPath = `sentry/${this.username}.sentry`;
+
+        this.loginData = {
+            account_name: this.username,
+            password: this.password
+        };
+
+        if (this.auth !== "") this.loginData.auth_code = this.auth;
+
+        let sentry = null;
+
+        if (fs.existsSync(this.sentryPath)) {
+            sentry = fs.readFileSync(this.sentryPath);
+        }
+
+        if (sentry != undefined && sentry.length) {
+            this.loginData.sha_sentryfile = crypto.createHash("sha1").update(sentry).digest();
+        }
+
+        console.log("About to connect");
+        this.steamClient.connect();
+    }
+
+    bindEventHandlers() {
+        this.steamClient.once("connected", () => {
+            this.steamReady = true;
+
+            console.log("Connected");
+            this.steamUser.logOn(this.loginData);
+        });
+
+        this.steamClient.once("error", (err) => {
+            console.log(err);
+            console.log("Trying to log in again...");
+
+            this.logIn();
+        });
+
+        this.steamClient.once("loggedOff", () => {
+            console.log("Logged off, reconnecting!");
+
+            this.logIn();
+        });
+
+        this.steamClient.once("servers", (servers) => {
+            console.log("Received servers.");
+            fs.writeFileSync('servers.json', JSON.stringify(servers, null, 2));
+        });
+
+        this.steamClient.once("sentry", (sentry) => {
+            console.log("Received sentry.");
+            fs.writeFileSync(this.sentryPath, sentry);
+        });
+
+        this.steamUser.on("updateMachineAuth", (sentry, callback) => {
+            fs.writeFileSync(this.sentryPath, sentry.bytes);
+
+            let sha_file = crypto.createHash("sha1").update(sentry.bytes).digest();
+
+            callback({ sha_file: sha_file });
+        });
+
+        this.steamClient.once("logOnResponse", (response) => {
+            if (response.eresult == Steam.EResult.OK) {
+                console.log("Log on OK");
+                this.csgoClient.launch();
+            }
+            else {
+                console.log(`Error logging in ${username}:`, response);
+
+                let login_error_msgs = {
+                    61: "Invalid Password",
+                    63: "Account login denied due to 2nd factor authentication failure. If using email auth, an email has been sent.",
+                    65: "Account login denied due to auth code being invalid",
+                    66: "Account login denied due to 2nd factor auth failure and no mail has been sent"
+                };
+
+                if (response.eresult && login_error_msgs[response.eresult] != undefined) {
+                    console.log(username + ": " + login_error_msgs[response.eresult]);
+                }   
+            }
+        });
+
         this.csgoClient.on("itemData", (itemData) => {
             if (this.resolve && this.currentRequest) {
                 // TODO: Add error checking to make sure the ID of itemData is what we want
 
                 // Clear any TTL timeout
-                if (this.ttlTimeout) clearInterval(this.ttlTimeout);
+                if (this.ttlTimeout) {
+                    clearInterval(this.ttlTimeout);
+                    this.ttlTimeout = false;
+                }
 
                 // Figure out how long to delay until this bot isn't busy anymore
                 let offset = new Date().getTime() - this.currentRequest.time;
@@ -51,84 +157,16 @@ class Bot {
         this.csgoClient.on("ready", () => {
             console.log("CSGO Client Ready!");
 
+            this.loggingIn = false;
             this.clientReady = true;
 
             if (this.exampleTest) this.exampleTest();
         });
 
-        this.steamUser.on("updateMachineAuth", (sentry, callback) => {
-            fs.writeFileSync(this.sentryPath, sentry.bytes);
+        this.csgoClient.on("unready", () => {
+            console.log("CSGO unready, trying to reconnect!");
 
-            let sha_file = crypto.createHash("sha1").update(sentry.bytes).digest();
-
-            callback({ sha_file: sha_file });
-        });
-    }
-
-    logIn(username, password, auth) {
-        this.sentryPath = `sentry/${username}.sentry`;
-
-        let loginData = {
-            account_name: username,
-            password: password
-        };
-
-        if (auth !== "") loginData.auth_code = auth;
-
-        let sentry = null;
-
-        if (fs.existsSync(this.sentryPath)) {
-            sentry = fs.readFileSync(this.sentryPath);
-        }
-
-        if (sentry != undefined && sentry.length) {
-            loginData.sha_sentryfile = crypto.createHash("sha1").update(sentry).digest();
-        }
-
-        console.log("About to connect");
-        this.steamClient.connect();
-
-        // set up event listeners
-        this.steamClient.once("connected", () => {
-            this.steamReady = true;
-
-            console.log("Connected");
-            this.steamUser.logOn(loginData);
-        });
-
-        this.steamClient.once("error", (err) => {
-            console.log(err);
-        });
-
-        this.steamClient.once("servers", (servers) => {
-            console.log("Received servers.");
-            fs.writeFileSync('servers.json', JSON.stringify(servers, null, 2));
-        });
-
-        this.steamClient.once("sentry", (sentry) => {
-            console.log("Received sentry.");
-            fs.writeFileSync(this.sentryPath, sentry);
-        });
-
-        this.steamClient.once("logOnResponse", (response) => {
-            if (response.eresult == Steam.EResult.OK) {
-                console.log("Log on OK")
-                this.csgoClient.launch();
-            }
-            else {
-                console.log(`Error logging in ${username}:`, response);
-
-                let login_error_msgs = {
-                    61: "Invalid Password",
-                    63: "Account login denied due to 2nd factor authentication failure. If using email auth, an email has been sent.",
-                    65: "Account login denied due to auth code being invalid",
-                    66: "Account login denied due to 2nd factor auth failure and no mail has been sent"
-                };
-
-                if (response.eresult && login_error_msgs[response.eresult] != undefined) {
-                    console.log(username + ": " + login_error_msgs[response.eresult]);
-                }   
-            }
+            this.logIn();
         });
     }
 
