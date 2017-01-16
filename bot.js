@@ -30,6 +30,8 @@ class Bot {
 
         console.log(`Logging in ${this.username}`);
 
+        if (this.steamClient) this.steamClient.disconnect();
+
         this.steamClient = new Steam.SteamClient();
         this.steamUser = new Steam.SteamUser(this.steamClient);
         this.steamGC = new Steam.SteamGameCoordinator(this.steamClient, 730);
