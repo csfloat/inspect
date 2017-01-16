@@ -29,7 +29,7 @@ for (let loginData of CONFIG.logins) {
 const createJob = function(data, saveCallback) {
     queue.create("floatlookup", data)
     .ttl(CONFIG.bot_settings.request_ttl)
-    .attempts(2)
+    .attempts(CONFIG.bot_settings.max_attempts)
     .removeOnComplete(true)
     .save(saveCallback);
 };
@@ -92,7 +92,6 @@ app.get("/", function(req, res) {
         params["type"] = "http";
 
         resController.addUserRequest(userIP, res, params);
-
         createJob(params);
     }
     else {
@@ -124,6 +123,38 @@ if (CONFIG.https.enable) {
     console.log("Listening for HTTPS on port: " + CONFIG.https.port);
 }
 
+// Remove any current inactive jobs in the Kue
+queue.inactive(function(err, ids) {
+    ids.forEach(function(id) {
+        try {
+            kue.Job.get(id, function(err, job) {
+                if (job != undefined) {
+                    job.remove();
+                }
+            });
+        }
+        catch (err) {
+            console.log("Couldn't obtain job", id, "when parsing inactive jobs");
+        }
+    });
+});
+
+// Remove any current active jobs in the Kue
+queue.active(function(err, ids) {
+    ids.forEach(function(id) {
+        try {
+            kue.Job.get(id, function(err, job) {
+                if (job != undefined) {
+                    job.remove();
+                }
+            });
+        }
+        catch (err) {
+            console.log("Couldn't obtain job", id, "when parsing active jobs");
+        }
+    });
+});
+
 queue.process("floatlookup", CONFIG.logins.length, (job, done) => {
     botController.lookupFloat(job.data)
     .then((itemData) => {
@@ -141,17 +172,24 @@ queue.process("floatlookup", CONFIG.logins.length, (job, done) => {
     })
     .catch((err) => {
         resController.respondToUser(job.data.ip, job.data, {error: errorMsgs[4], code: 4}, 500);
-        console.log("Job Error: " + err);
+        console.log("Job Error:", err);
         done(String(err));
     });
 });
 
-queue.on('job failed attempt', function(id, result){
-    console.log("Job", id, "Failed Attempt!");
-});
-
-queue.on('job failed', function(id, result){
+queue.on('job failed', function(id, result) {
     console.log("Job", id, "Failed!");
+    try {
+        kue.Job.get(id, function(err, job) {
+            if (job != undefined) {
+                resController.respondToUser(job.data.ip, job.data, {error: errorMsgs[4], code: 4}, 500);
+                job.remove();
+            }
+        });
+    }
+    catch (err) {
+        console.log("Couldn't obtain failed job", id);
+    }
 });
 
 process.once("SIGTERM", (sig) => {
