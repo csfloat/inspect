@@ -35,7 +35,7 @@ class ResController {
         }
     }
 
-    isUserRequesting(ip) {
+    isUserInQueue(ip) {
         if (this.userResponses[ip] === undefined || this.userResponses[ip].length == 0) return false;
         else return true;
     }

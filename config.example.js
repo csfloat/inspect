@@ -47,6 +47,8 @@ module.exports = {
         "http://steamcommunity.com",
         "https://steamcommunity.com"
     ],
+    // Bool to Allow Simultaneous Requests to the API from the same IP (WS and HTTP/HTTPS)
+    "allow_simultaneous_requests": false,
     // MongoDB connection info
     "database": {
         "url": "localhost",

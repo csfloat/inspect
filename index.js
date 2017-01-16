@@ -84,6 +84,7 @@ app.get("/", function(req, res) {
         return;
     }
 
+    // Check if there is a bot online to process this request
     if (botController.isBotOnline()) {
         let userIP = req.connection.remoteAddress;
         let params = thisLink.getParams();
@@ -91,8 +92,14 @@ app.get("/", function(req, res) {
         params["ip"] = userIP;
         params["type"] = "http";
 
-        resController.addUserRequest(userIP, res, params);
-        createJob(params);
+        // If the flag is set, check if the user already has a request in the queue
+        if (CONFIG.allow_simultaneous_requests || !resController.isUserInQueue(userIP)) {
+            resController.addUserRequest(userIP, res, params);
+            createJob(params);
+        }
+        else {
+            res.status(400).json({error: errorMsgs[3], code: 3});
+        }
     }
     else {
         res.status(503).json({error: errorMsgs[5], code: 5});
