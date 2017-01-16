@@ -12,6 +12,23 @@ if (CONFIG.logins.length == 0) {
     process.exit(1);
 }
 
+/*
+    Returns a boolean as to whether the specified path is a directory and exists
+*/
+const isValidDir = function (path) {
+    try {
+        return fs.statSync(path).isDirectory();
+    } catch (e) {
+        return false;
+    }
+}
+
+// If the sentry folder doesn't exist, create it
+if (!isValidDir("sentry")) {
+    console.log("Creating sentry directory");
+    fs.mkdirSync("sentry");
+}
+
 const botController = new BotController();
 const resController = new ResController();
 const DB = new DBHandler(CONFIG.database_url);
