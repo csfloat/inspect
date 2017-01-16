@@ -1,7 +1,8 @@
 const fs = require("fs"),
     Steam = require("steam"),
     csgo = require("csgo"),
-    crypto = require("crypto");
+    crypto = require("crypto"),
+    Long = require("long");
 
 class Bot {
     constructor(settings) {
@@ -52,7 +53,7 @@ class Bot {
             sentry = fs.readFileSync(this.sentryPath);
         }
 
-        if (sentry != undefined && sentry.length) {
+        if (sentry && sentry.length) {
             this.loginData.sha_sentryfile = crypto.createHash("sha1").update(sentry).digest();
         }
 
@@ -122,7 +123,11 @@ class Bot {
 
         this.csgoClient.on("itemData", (itemData) => {
             if (this.resolve && this.currentRequest) {
-                // TODO: Add error checking to make sure the ID of itemData is what we want
+                // Ensure the received itemid is the same as what we want
+                let itemid = itemData.iteminfo.itemid;
+                itemData.iteminfo.itemid = new Long(itemid.low, itemid.high, itemid.unsigned).toString();
+
+                if (itemData.iteminfo.itemid != this.currentRequest.a) return;
 
                 // Clear any TTL timeout
                 if (this.ttlTimeout) {
