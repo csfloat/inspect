@@ -50,8 +50,5 @@ module.exports = {
     // Bool to Allow Simultaneous Requests to the API from the same IP (WS and HTTP/HTTPS)
     "allow_simultaneous_requests": false,
     // MongoDB connection info
-    "database": {
-        "url": "localhost",
-        "port": 27017
-    }
+    "database_url": "mongodb://localhost:27017/CSGOFloatdb"
 }

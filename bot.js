@@ -32,6 +32,10 @@ class Bot {
                 if (delay < 0) delay = 0;
 
                 itemData.delay = delay;
+                itemData.iteminfo.s = this.currentRequest.s;
+                itemData.iteminfo.a = this.currentRequest.a;
+                itemData.iteminfo.d = this.currentRequest.d;
+                itemData.iteminfo.m = this.currentRequest.m;
 
                 this.resolve(itemData);
                 this.resolve = false;
@@ -104,7 +108,7 @@ class Bot {
 
             console.log("Fetching for", data.s, data.a, data.d, data.m);
 
-            this.currentRequest = {id: data.a, time: new Date().getTime()};
+            this.currentRequest = {s: data.s, a: data.a, d: data.d, m: data.m, time: new Date().getTime()};
 
             if (!this.clientReady) reject("This bot is not ready");
             else this.csgoClient.itemDataRequest(data.s, data.a, data.d, data.m);

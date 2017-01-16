@@ -4,6 +4,7 @@ const fs = require("fs"),
     BotController = require("./bot_controller"),
     InspectURL = require("./inspect_url"),
     ResController = require("./res_controller"),
+    DBHandler = require("./db"),
     CONFIG = require("./config");
 
 if (CONFIG.logins.length == 0) {
@@ -13,6 +14,7 @@ if (CONFIG.logins.length == 0) {
 
 const botController = new BotController();
 const resController = new ResController();
+const DB = new DBHandler(CONFIG.database_url);
 
 const errorMsgs = {
     1: "Improper Parameter Structure",
@@ -84,26 +86,35 @@ app.get("/", function(req, res) {
         return;
     }
 
-    // Check if there is a bot online to process this request
-    if (botController.isBotOnline()) {
-        let userIP = req.connection.remoteAddress;
-        let params = thisLink.getParams();
+    // Check if the item is already in the DB
+    DB.getItemData(thisLink.getParams(), function (err, doc) {
+        // If we got the result, just return it
+        if (doc) {
+            res.json({"iteminfo": doc});
+            return;
+        }
 
-        params["ip"] = userIP;
-        params["type"] = "http";
+        // Check if there is a bot online to process this request
+        if (botController.isBotOnline()) {
+            let userIP = req.connection.remoteAddress;
+            let params = thisLink.getParams();
 
-        // If the flag is set, check if the user already has a request in the queue
-        if (CONFIG.allow_simultaneous_requests || !resController.isUserInQueue(userIP)) {
-            resController.addUserRequest(userIP, res, params);
-            createJob(params);
+            params["ip"] = userIP;
+            params["type"] = "http";
+
+            // If the flag is set, check if the user already has a request in the queue
+            if (CONFIG.allow_simultaneous_requests || !resController.isUserInQueue(userIP)) {
+                resController.addUserRequest(userIP, res, params);
+                createJob(params);
+            }
+            else {
+                res.status(400).json({error: errorMsgs[3], code: 3});
+            }
         }
         else {
-            res.status(400).json({error: errorMsgs[3], code: 3});
+            res.status(503).json({error: errorMsgs[5], code: 5});
         }
-    }
-    else {
-        res.status(503).json({error: errorMsgs[5], code: 5});
-    }
+    });
 });
 
 var http_server = require("http").Server(app);
@@ -172,6 +183,9 @@ queue.process("floatlookup", CONFIG.logins.length, (job, done) => {
         delete itemData.delay;
 
         resController.respondToUser(job.data.ip, job.data, itemData);
+
+        // add the item info to the DB
+        DB.insertItemData(itemData.iteminfo);
 
         setTimeout(() => {
             done();
