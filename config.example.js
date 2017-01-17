@@ -49,6 +49,8 @@ module.exports = {
     ],
     // Bool to Allow Simultaneous Requests to the API from the same IP (WS and HTTP/HTTPS)
     "allow_simultaneous_requests": false,
+    // Amount of seconds to wait between updating game files (0 = No Interval Updates)
+    "game_files_update_interval": 3600,
     // MongoDB connection info
     "database_url": "mongodb://localhost:27017/CSGOFloatdb"
 }
