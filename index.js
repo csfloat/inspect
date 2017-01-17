@@ -13,7 +13,6 @@ if (CONFIG.logins.length == 0) {
     process.exit(1);
 }
 
-
 // If the sentry folder doesn't exist, create it
 if (!GameData.isValidDir("sentry")) {
     console.log("Creating sentry directory");
@@ -45,30 +44,46 @@ const createJob = function(data, saveCallback) {
     .save(saveCallback);
 };
 
-botController.bots[0].exampleTest = () => {
-    console.log("ready to kick ass");
+const lookupHandler = function (params) {
+    // Check if the item is already in the DB
+    DB.getItemData(params, function (err, doc) {
+        // If we got the result, just return it
+        if (doc) {
+            gameData.addAdditionalItemProperties(doc);
 
-    createJob({
-        s: "0",
-        a: "8449497752",
-        d: "12421046574319460861",
-        m: "784021865847461149"
+            if (params.type === "http") params.res.json({"iteminfo": doc});
+            else params.res.emit('floatmessage', {"iteminfo": doc});
+
+            return;
+        }
+
+        // Check if there is a bot online to process this request
+        if (botController.isBotOnline()) {
+            // If the flag is set, check if the user already has a request in the queue
+            if (CONFIG.allow_simultaneous_requests || !resController.isUserInQueue(userIP)) {
+                resController.addUserRequest(params);
+
+                let res = params.res;
+
+                // Remove this object since it can't be serialized in Redis
+                delete params.res;
+
+                // Create the job, if it is a websocket user, tell them
+                createJob(params, () => {
+                    if (params.type === "ws") res.emit("infomessage", "Your request for " + params.a + " is in the queue");
+                });
+            }
+            else {
+                if (params.type === "http") params.res.status(400).json({error: errorMsgs[3], code: 3});
+                else params.res.emit('errormessage', errorMsgs[3]);
+            }
+        }
+        else {
+            if (params.type === "http") params.res.status(503).json({error: errorMsgs[5], code: 5});
+            else params.res.emit('errormessage', errorMsgs[5]);
+        }
     });
-
-    createJob({
-        s: "0",
-        a: "8449500490",
-        d: "14312561011969544059",
-        m: "784021865847463229"
-    });
-
-    let testURL = new InspectURL("0", "8449500490", "14312561011969544059", "784021865847463229");
-    console.log(testURL.getLink());
-
-    let testURL2 = new InspectURL("steam://rungame/730/76561202255233023/+csgo_econ_action_preview S76561198084749846A698323590D7935523998312483177");
-    console.log(testURL2.getParams());
 }
-
 
 // Setup and configure express
 var app = require("express")();
@@ -95,36 +110,14 @@ app.get("/", function(req, res) {
         return;
     }
 
-    // Check if the item is already in the DB
-    DB.getItemData(thisLink.getParams(), function (err, doc) {
-        // If we got the result, just return it
-        if (doc) {
-            gameData.addAdditionalItemProperties(doc);
-            res.json({"iteminfo": doc});
-            return;
-        }
+    // Look it up
+    let params = thisLink.getParams();
 
-        // Check if there is a bot online to process this request
-        if (botController.isBotOnline()) {
-            let userIP = req.connection.remoteAddress;
-            let params = thisLink.getParams();
+    params.ip = req.connection.remoteAddress;
+    params.type = "http";
+    params.res = res;
 
-            params["ip"] = userIP;
-            params["type"] = "http";
-
-            // If the flag is set, check if the user already has a request in the queue
-            if (CONFIG.allow_simultaneous_requests || !resController.isUserInQueue(userIP)) {
-                resController.addUserRequest(userIP, res, params);
-                createJob(params);
-            }
-            else {
-                res.status(400).json({error: errorMsgs[3], code: 3});
-            }
-        }
-        else {
-            res.status(503).json({error: errorMsgs[5], code: 5});
-        }
-    });
+    lookupHandler(params);
 });
 
 var http_server = require("http").Server(app);
@@ -141,6 +134,7 @@ if (CONFIG.https.enable) {
     https_server = require("https").Server(credentials, app);
 }
 
+
 if (CONFIG.http.enable) {
     http_server.listen(CONFIG.http.port);
     console.log("Listening for HTTP on port: " + CONFIG.http.port);
@@ -149,6 +143,44 @@ if (CONFIG.http.enable) {
 if (CONFIG.https.enable) {
     https_server.listen(CONFIG.https.port);
     console.log("Listening for HTTPS on port: " + CONFIG.https.port);
+}
+
+var io;
+
+if (CONFIG.socketio.enable) {
+    if (https_server) {
+        io = require("socket.io")(https_server);
+        console.log("Listening for HTTPS websocket connections on port: " + CONFIG.https.port);
+    }
+    else {
+        // Fallback onto HTTP for socket.io
+        io = require("socket.io")(http_server);
+        console.log("Listening for HTTP websocket connections on port: " + CONFIG.http.port);
+    }
+
+    if (CONFIG.socketio.origins && CONFIG.socketio.origins != "") {
+        io.set("origins", CONFIG.socketio.origins);
+    }
+
+    io.on('connection', function(socket) {
+        socket.emit('joined');
+
+        socket.on('lookup', function(link) {
+            link = new InspectURL(link);
+            let params = link.getParams();
+
+            if (link && params) {
+                params.ip = socket.request.connection.remoteAddress;
+                params.type = "ws";
+                params.res = socket;
+
+                lookupHandler(params);
+            }
+            else {
+                socket.emit('errormessage', errorMsgs[2]);
+            }
+        });
+    });
 }
 
 // Remove any current inactive jobs in the Kue

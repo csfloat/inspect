@@ -4,6 +4,7 @@
   "description": "Source Code that Powers the CSGOFloat API",
   "author": "Step7750",
   "main": "index.js",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/Step7750/CSGOFloat.git"
@@ -15,6 +16,7 @@
     "mongodb": "^2.2.21",
     "steam": "^1.4.0",
     "simple-vdf": "^1.1.0",
-    "long": "^3.2.0"
+    "long": "^3.2.0",
+    "socket.io": "^1.7.2"
   }
 }
