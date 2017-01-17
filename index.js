@@ -1,22 +1,22 @@
-const fs = require("fs"),
-    kue = require("kue"),
+const fs = require('fs'),
+    kue = require('kue'),
     queue = kue.createQueue(),
-    BotController = require("./lib/bot_controller"),
-    InspectURL = require("./lib/inspect_url"),
-    ResController = require("./lib/res_controller"),
-    GameData = require("./lib/game_data"),
-    DBHandler = require("./lib/db"),
-    CONFIG = require("./config");
+    BotController = require('./lib/bot_controller'),
+    InspectURL = require('./lib/inspect_url'),
+    ResController = require('./lib/res_controller'),
+    GameData = require('./lib/game_data'),
+    DBHandler = require('./lib/db'),
+    CONFIG = require('./config');
 
 if (CONFIG.logins.length == 0) {
-    console.log("There are no bot logins. Please add some in config.json");
+    console.log('There are no bot logins. Please add some in config.json');
     process.exit(1);
 }
 
 // If the sentry folder doesn't exist, create it
-if (!GameData.isValidDir("sentry")) {
-    console.log("Creating sentry directory");
-    fs.mkdirSync("sentry");
+if (!GameData.isValidDir('sentry')) {
+    console.log('Creating sentry directory');
+    fs.mkdirSync('sentry');
 }
 
 const botController = new BotController();
@@ -25,19 +25,19 @@ const gameData = new GameData(CONFIG.game_files_update_interval, CONFIG.enable_g
 const DB = new DBHandler(CONFIG.database_url);
 
 const errorMsgs = {
-    1: "Improper Parameter Structure",
-    2: "Invalid Inspect Link Structure",
-    3: "You may only have one pending request at a time",
-    4: "Valve's servers didn't reply in time",
-    5: "Valve's servers appear to be offline, please try again later"
-}
+    1: 'Improper Parameter Structure',
+    2: 'Invalid Inspect Link Structure',
+    3: 'You may only have one pending request at a time',
+    4: 'Valve\'s servers didn\'t reply in time',
+    5: 'Valve\'s servers appear to be offline, please try again later'
+};
 
 for (let loginData of CONFIG.logins) {
     botController.addBot(loginData, CONFIG.bot_settings);
 }
 
 const createJob = function(data, saveCallback) {
-    queue.create("floatlookup", data)
+    queue.create('floatlookup', data)
     .ttl(CONFIG.bot_settings.request_ttl)
     .attempts(CONFIG.bot_settings.max_attempts)
     .removeOnComplete(true)
@@ -51,8 +51,8 @@ const lookupHandler = function (params) {
         if (doc) {
             gameData.addAdditionalItemProperties(doc);
 
-            if (params.type === "http") params.res.json({"iteminfo": doc});
-            else params.res.emit('floatmessage', {"iteminfo": doc});
+            if (params.type === 'http') params.res.json({'iteminfo': doc});
+            else params.res.emit('floatmessage', {'iteminfo': doc});
 
             return;
         }
@@ -60,7 +60,7 @@ const lookupHandler = function (params) {
         // Check if there is a bot online to process this request
         if (botController.isBotOnline()) {
             // If the flag is set, check if the user already has a request in the queue
-            if (CONFIG.allow_simultaneous_requests || !resController.isUserInQueue(userIP)) {
+            if (CONFIG.allow_simultaneous_requests || !resController.isUserInQueue(params.ip)) {
                 resController.addUserRequest(params);
 
                 let res = params.res;
@@ -70,25 +70,25 @@ const lookupHandler = function (params) {
 
                 // Create the job, if it is a websocket user, tell them
                 createJob(params, () => {
-                    if (params.type === "ws") res.emit("infomessage", "Your request for " + params.a + " is in the queue");
+                    if (params.type === 'ws') res.emit('infomessage', 'Your request for ' + params.a + ' is in the queue');
                 });
             }
             else {
-                if (params.type === "http") params.res.status(400).json({error: errorMsgs[3], code: 3});
+                if (params.type === 'http') params.res.status(400).json({error: errorMsgs[3], code: 3});
                 else params.res.emit('errormessage', errorMsgs[3]);
             }
         }
         else {
-            if (params.type === "http") params.res.status(503).json({error: errorMsgs[5], code: 5});
+            if (params.type === 'http') params.res.status(503).json({error: errorMsgs[5], code: 5});
             else params.res.emit('errormessage', errorMsgs[5]);
         }
     });
-}
+};
 
 // Setup and configure express
-var app = require("express")();
+var app = require('express')();
 
-app.get("/", function(req, res) {
+app.get('/', function(req, res) {
     // Allow some origins
     if (CONFIG.allowed_origins.length > 0 && req.get('origin') != undefined) {
         // check to see if its a valid domain
@@ -101,8 +101,8 @@ app.get("/", function(req, res) {
     // Get and parse parameters
     let thisLink;
 
-    if ("url" in req.query) thisLink = new InspectURL(req.query.url);
-    else if ("a" in req.query && "d" in req.query && ("s" in req.query || "m" in req.query)) thisLink = new InspectURL(req.query);
+    if ('url' in req.query) thisLink = new InspectURL(req.query.url);
+    else if ('a' in req.query && 'd' in req.query && ('s' in req.query || 'm' in req.query)) thisLink = new InspectURL(req.query);
 
     // Make sure the params are valid
     if (!thisLink || !thisLink.getParams()) {
@@ -114,13 +114,13 @@ app.get("/", function(req, res) {
     let params = thisLink.getParams();
 
     params.ip = req.connection.remoteAddress;
-    params.type = "http";
+    params.type = 'http';
     params.res = res;
 
     lookupHandler(params);
 });
 
-var http_server = require("http").Server(app);
+var http_server = require('http').Server(app);
 
 var https_server;
 
@@ -131,35 +131,35 @@ if (CONFIG.https.enable) {
         ca: fs.readFileSync(CONFIG.https.ca_path, 'utf8')
     };
 
-    https_server = require("https").Server(credentials, app);
+    https_server = require('https').Server(credentials, app);
 }
 
 
 if (CONFIG.http.enable) {
     http_server.listen(CONFIG.http.port);
-    console.log("Listening for HTTP on port: " + CONFIG.http.port);
+    console.log('Listening for HTTP on port: ' + CONFIG.http.port);
 }
 
 if (CONFIG.https.enable) {
     https_server.listen(CONFIG.https.port);
-    console.log("Listening for HTTPS on port: " + CONFIG.https.port);
+    console.log('Listening for HTTPS on port: ' + CONFIG.https.port);
 }
 
 var io;
 
 if (CONFIG.socketio.enable) {
     if (https_server) {
-        io = require("socket.io")(https_server);
-        console.log("Listening for HTTPS websocket connections on port: " + CONFIG.https.port);
+        io = require('socket.io')(https_server);
+        console.log('Listening for HTTPS websocket connections on port: ' + CONFIG.https.port);
     }
     else {
         // Fallback onto HTTP for socket.io
-        io = require("socket.io")(http_server);
-        console.log("Listening for HTTP websocket connections on port: " + CONFIG.http.port);
+        io = require('socket.io')(http_server);
+        console.log('Listening for HTTP websocket connections on port: ' + CONFIG.http.port);
     }
 
-    if (CONFIG.socketio.origins && CONFIG.socketio.origins != "") {
-        io.set("origins", CONFIG.socketio.origins);
+    if (CONFIG.socketio.origins && CONFIG.socketio.origins != '') {
+        io.set('origins', CONFIG.socketio.origins);
     }
 
     io.on('connection', function(socket) {
@@ -171,7 +171,7 @@ if (CONFIG.socketio.enable) {
 
             if (link && params) {
                 params.ip = socket.request.connection.remoteAddress;
-                params.type = "ws";
+                params.type = 'ws';
                 params.res = socket;
 
                 lookupHandler(params);
@@ -194,7 +194,7 @@ queue.inactive(function(err, ids) {
             });
         }
         catch (err) {
-            console.log("Couldn't obtain job", id, "when parsing inactive jobs");
+            console.log('Couldn\'t obtain job', id, 'when parsing inactive jobs');
         }
     });
 });
@@ -210,15 +210,15 @@ queue.active(function(err, ids) {
             });
         }
         catch (err) {
-            console.log("Couldn't obtain job", id, "when parsing active jobs");
+            console.log('Couldn\'t obtain job', id, 'when parsing active jobs');
         }
     });
 });
 
-queue.process("floatlookup", CONFIG.logins.length, (job, done) => {
+queue.process('floatlookup', CONFIG.logins.length, (job, done) => {
     botController.lookupFloat(job.data)
     .then((itemData) => {
-        console.log("Recieved itemData for " + job.data.a + " ID: " + job.id);
+        console.log('Recieved itemData for ' + job.data.a + ' ID: ' + job.id);
 
         // Save and remove the delay attribute
         let delay = itemData.delay;
@@ -236,13 +236,13 @@ queue.process("floatlookup", CONFIG.logins.length, (job, done) => {
     })
     .catch((err) => {
         resController.respondToUser(job.data.ip, job.data, {error: errorMsgs[4], code: 4}, 500);
-        console.log("Job Error:", err);
+        console.log('Job Error:', err);
         done(String(err));
     });
 });
 
 queue.on('job failed', function(id, result) {
-    console.log("Job", id, "Failed!");
+    console.log('Job', id, 'Failed!');
     try {
         kue.Job.get(id, function(err, job) {
             if (job != undefined) {
@@ -252,13 +252,13 @@ queue.on('job failed', function(id, result) {
         });
     }
     catch (err) {
-        console.log("Couldn't obtain failed job", id);
+        console.log('Couldn\'t obtain failed job', id);
     }
 });
 
-process.once("SIGTERM", (sig) => {
+process.once('SIGTERM', (sig) => {
     queue.shutdown(5000, (err) => {
-        console.log("Kue shutdown: ", err || "");
+        console.log('Kue shutdown: ', err || '');
         process.exit(0);
     });
 });

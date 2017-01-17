@@ -18,5 +18,9 @@
     "simple-vdf": "^1.1.0",
     "long": "^3.2.0",
     "socket.io": "^1.7.2"
+  },
+  "devDependencies": {
+    "eslint": "^3.13.1",
+    "eslint-config-google": "^0.7.1"
   }
 }
