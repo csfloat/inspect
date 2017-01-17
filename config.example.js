@@ -49,6 +49,8 @@ module.exports = {
     ],
     // Bool to Allow Simultaneous Requests to the API from the same IP (WS and HTTP/HTTPS)
     "allow_simultaneous_requests": false,
+    // Bool to enable game file updates from the SteamDB Github tracker (updated item definitions, images, names)
+    "enable_game_file_updates": true,
     // Amount of seconds to wait between updating game files (0 = No Interval Updates)
     "game_files_update_interval": 3600,
     // MongoDB connection info

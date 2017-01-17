@@ -22,7 +22,7 @@ if (!GameData.isValidDir("sentry")) {
 
 const botController = new BotController();
 const resController = new ResController();
-const gameData = new GameData(CONFIG.game_files_update_interval);
+const gameData = new GameData(CONFIG.game_files_update_interval, CONFIG.enable_game_file_updates);
 const DB = new DBHandler(CONFIG.database_url);
 
 const errorMsgs = {
