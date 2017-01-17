@@ -4,6 +4,7 @@ const fs = require("fs"),
     BotController = require("./lib/bot_controller"),
     InspectURL = require("./lib/inspect_url"),
     ResController = require("./lib/res_controller"),
+    GameData = require("./lib/game_data"),
     DBHandler = require("./lib/db"),
     CONFIG = require("./config");
 
@@ -12,25 +13,16 @@ if (CONFIG.logins.length == 0) {
     process.exit(1);
 }
 
-/*
-    Returns a boolean as to whether the specified path is a directory and exists
-*/
-const isValidDir = function (path) {
-    try {
-        return fs.statSync(path).isDirectory();
-    } catch (e) {
-        return false;
-    }
-}
 
 // If the sentry folder doesn't exist, create it
-if (!isValidDir("sentry")) {
+if (!GameData.isValidDir("sentry")) {
     console.log("Creating sentry directory");
     fs.mkdirSync("sentry");
 }
 
 const botController = new BotController();
 const resController = new ResController();
+const gameData = new GameData();
 const DB = new DBHandler(CONFIG.database_url);
 
 const errorMsgs = {
@@ -107,6 +99,7 @@ app.get("/", function(req, res) {
     DB.getItemData(thisLink.getParams(), function (err, doc) {
         // If we got the result, just return it
         if (doc) {
+            gameData.addAdditionalItemProperties(doc);
             res.json({"iteminfo": doc});
             return;
         }
@@ -199,10 +192,11 @@ queue.process("floatlookup", CONFIG.logins.length, (job, done) => {
         let delay = itemData.delay;
         delete itemData.delay;
 
-        resController.respondToUser(job.data.ip, job.data, itemData);
-
         // add the item info to the DB
         DB.insertItemData(itemData.iteminfo);
+
+        gameData.addAdditionalItemProperties(itemData.iteminfo);
+        resController.respondToUser(job.data.ip, job.data, itemData);
 
         setTimeout(() => {
             done();
