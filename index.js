@@ -1,28 +1,13 @@
 const fs = require('fs'),
     kue = require('kue'),
     queue = kue.createQueue(),
-    BotController = require('./lib/bot_controller'),
+    CONFIG = require('./config'),
+    utils = require('./lib/utils'),
     InspectURL = require('./lib/inspect_url'),
-    ResController = require('./lib/res_controller'),
-    GameData = require('./lib/game_data'),
-    DBHandler = require('./lib/db'),
-    CONFIG = require('./config');
-
-if (CONFIG.logins.length == 0) {
-    console.log('There are no bot logins. Please add some in config.json');
-    process.exit(1);
-}
-
-// If the sentry folder doesn't exist, create it
-if (!GameData.isValidDir('sentry')) {
-    console.log('Creating sentry directory');
-    fs.mkdirSync('sentry');
-}
-
-const botController = new BotController();
-const resController = new ResController();
-const gameData = new GameData(CONFIG.game_files_update_interval, CONFIG.enable_game_file_updates);
-const DB = new DBHandler(CONFIG.database_url);
+    botController = new (require('./lib/bot_controller'))(),
+    resController = new (require('./lib/res_controller'))(),
+    DB = new (require('./lib/db'))(CONFIG.database_url),
+    gameData = new (require('./lib/game_data'))(CONFIG.game_files_update_interval, CONFIG.enable_game_file_updates);
 
 const errorMsgs = {
     1: 'Improper Parameter Structure',
@@ -31,6 +16,17 @@ const errorMsgs = {
     4: 'Valve\'s servers didn\'t reply in time',
     5: 'Valve\'s servers appear to be offline, please try again later'
 };
+
+if (CONFIG.logins.length == 0) {
+    console.log('There are no bot logins. Please add some in config.json');
+    process.exit(1);
+}
+
+// If the sentry folder doesn't exist, create it
+if (!utils.isValidDir('sentry')) {
+    console.log('Creating sentry directory');
+    fs.mkdirSync('sentry');
+}
 
 for (let loginData of CONFIG.logins) {
     botController.addBot(loginData, CONFIG.bot_settings);
