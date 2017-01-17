@@ -218,7 +218,7 @@ queue.active(function(err, ids) {
 queue.process("floatlookup", CONFIG.logins.length, (job, done) => {
     botController.lookupFloat(job.data)
     .then((itemData) => {
-        console.log("Recieved itemData: ", itemData);
+        console.log("Recieved itemData for " + job.data.a + " ID: " + job.id);
 
         // Save and remove the delay attribute
         let delay = itemData.delay;
