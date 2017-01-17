@@ -54,35 +54,38 @@ const lookupHandler = function (params) {
         }
 
         // Check if there is a bot online to process this request
-        if (botController.isBotOnline()) {
-            // If the flag is set, check if the user already has a request in the queue
-            if (CONFIG.allow_simultaneous_requests || !resController.isUserInQueue(params.ip)) {
-                resController.addUserRequest(params);
-
-                let res = params.res;
-
-                // Remove this object since it can't be serialized in Redis
-                delete params.res;
-
-                // Create the job, if it is a websocket user, tell them
-                createJob(params, () => {
-                    if (params.type === 'ws') res.emit('infomessage', 'Your request for ' + params.a + ' is in the queue');
-                });
-            }
-            else {
-                if (params.type === 'http') params.res.status(400).json({error: errorMsgs[3], code: 3});
-                else params.res.emit('errormessage', errorMsgs[3]);
-            }
-        }
-        else {
+        if (!botController.hasBotOnline()) {
             if (params.type === 'http') params.res.status(503).json({error: errorMsgs[5], code: 5});
             else params.res.emit('errormessage', errorMsgs[5]);
+
+            return;
         }
+
+        // If the flag is set, check if the user already has a request in the queue
+        if (!CONFIG.allow_simultaneous_requests && resController.isUserInQueue(params.ip)) {
+            if (params.type === 'http') params.res.status(400).json({error: errorMsgs[3], code: 3});
+            else params.res.emit('errormessage', errorMsgs[3]);
+
+            return;
+        }
+
+        // Add the user to the queue
+        resController.addUserRequest(params);
+
+        let res = params.res;
+
+        // Remove this object since it can't be serialized in Redis
+        delete params.res;
+
+        // Create the job, if it is a websocket user, tell them
+        createJob(params, () => {
+            if (params.type === 'ws') res.emit('infomessage', `Your request for ${params.a} is in the queue`);
+        });
     });
 };
 
 // Setup and configure express
-var app = require('express')();
+let app = require('express')();
 
 app.get('/', function(req, res) {
     // Allow some origins
@@ -116,9 +119,9 @@ app.get('/', function(req, res) {
     lookupHandler(params);
 });
 
-var http_server = require('http').Server(app);
+let http_server = require('http').Server(app);
 
-var https_server;
+let https_server;
 
 if (CONFIG.https.enable) {
     var credentials = {
@@ -141,9 +144,10 @@ if (CONFIG.https.enable) {
     console.log('Listening for HTTPS on port: ' + CONFIG.https.port);
 }
 
-var io;
 
 if (CONFIG.socketio.enable) {
+    let io;
+
     if (https_server) {
         io = require('socket.io')(https_server);
         console.log('Listening for HTTPS websocket connections on port: ' + CONFIG.https.port);
@@ -154,7 +158,7 @@ if (CONFIG.socketio.enable) {
         console.log('Listening for HTTP websocket connections on port: ' + CONFIG.http.port);
     }
 
-    if (CONFIG.socketio.origins && CONFIG.socketio.origins != '') {
+    if (CONFIG.socketio.origins) {
         io.set('origins', CONFIG.socketio.origins);
     }
 
