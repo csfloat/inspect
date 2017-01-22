@@ -172,7 +172,7 @@ You can install the Node.js dependencies using `npm install` or `yarn install`
 
 **If you have a config from v1.0, please update it to match the new parameters in v2.0+!**
 
-##### How to First Login a Bot
+#### How to First Login a Bot
 
 * Using Email 2FA
 	* Only fill in the `user` and `pass` fields for the bot
