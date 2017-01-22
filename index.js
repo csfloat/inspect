@@ -124,7 +124,7 @@ let http_server = require('http').Server(app);
 let https_server;
 
 if (CONFIG.https.enable) {
-    var credentials = {
+    const credentials = {
         key: fs.readFileSync(CONFIG.https.key_path, 'utf8'),
         cert: fs.readFileSync(CONFIG.https.cert_path, 'utf8'),
         ca: fs.readFileSync(CONFIG.https.ca_path, 'utf8')
@@ -241,7 +241,7 @@ queue.process('floatlookup', CONFIG.logins.length, (job, done) => {
     });
 });
 
-queue.on('job failed', function(id, result) {
+queue.on('job failed', function(id) {
     console.log('Job', id, 'Failed!');
     try {
         kue.Job.get(id, function(err, job) {
@@ -256,7 +256,7 @@ queue.on('job failed', function(id, result) {
     }
 });
 
-process.once('SIGTERM', (sig) => {
+process.once('SIGTERM', () => {
     queue.shutdown(5000, (err) => {
         console.log('Kue shutdown: ', err || '');
         process.exit(0);
