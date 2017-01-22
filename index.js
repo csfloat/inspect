@@ -212,6 +212,8 @@ queue.active(function(err, ids) {
 });
 
 queue.process('floatlookup', CONFIG.logins.length, (job, done) => {
+    resController.insertJobDoneObj(job.data.ip, job.data, done);
+
     botController.lookupFloat(job.data)
     .then((itemData) => {
         console.log('Recieved itemData for ' + job.data.a + ' ID: ' + job.id);
@@ -237,18 +239,22 @@ queue.process('floatlookup', CONFIG.logins.length, (job, done) => {
     });
 });
 
-queue.on('job failed', function(id) {
-    console.log('Job', id, 'Failed!');
-    try {
+queue.on('job error', function(id, err){
+    if (err !== 'TTL exceeded') console.log(`Job ${id} Error: ${err}`);
+    else {
         kue.Job.get(id, function(err, job) {
-            if (job && job.data) {
-                resController.respondErrorToUser(job.data.ip, job.data, {error: errorMsgs[4], code: 4}, 500);
-                job.remove();
-            }
+            if (!job || !job.data) return;
+
+            let attempts = resController.incrementJobAttempts(job.data.ip, job.data);
+
+            if (attempts !== CONFIG.bot_settings.max_attempts) return;
+
+            console.log(`Job ${id} Failed!`);
+
+            resController.callJobDoneObj(job.data.ip, job.data);
+            resController.respondErrorToUser(job.data.ip, job.data, {error: errorMsgs[4], code: 4}, 500);
+            job.remove();
         });
-    }
-    catch (err) {
-        console.log('Couldn\'t obtain failed job', id);
     }
 });
 
