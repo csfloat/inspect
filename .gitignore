@@ -4,3 +4,4 @@ servers.json
 sentry
 game_files
 .DS_Store
+.idea
