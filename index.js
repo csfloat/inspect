@@ -245,7 +245,7 @@ queue.on('job failed', function(id) {
     console.log('Job', id, 'Failed!');
     try {
         kue.Job.get(id, function(err, job) {
-            if (job != undefined) {
+            if (job && job.data) {
                 resController.respondToUser(job.data.ip, job.data, {error: errorMsgs[4], code: 4}, 500);
                 job.remove();
             }
