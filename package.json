@@ -15,6 +15,7 @@
     "kue": "^0.11.5",
     "mongodb": "^2.2.21",
     "steam": "^1.4.0",
+    "steam-totp": "^1.4.0",
     "simple-vdf": "^1.1.0",
     "long": "^3.2.0",
     "socket.io": "^1.7.2"

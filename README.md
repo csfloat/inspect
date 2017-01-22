@@ -170,8 +170,21 @@ You can install the Node.js dependencies using `npm install` or `yarn install`
 5. Run `node index.js` in the main directory
 6. Navigate to the IP that the server is hosted on and query the API using the docs above!
 
-**Note**: When you first login a bot, it will send a 2FA code to your email. Enter the 2FA code into the "auth" field for that bot and restart CSGOFloat to successfully login.
-
 **If you have a config from v1.0, please update it to match the new parameters in v2.0+!**
 
-**Currently only Steam accounts without Mobile 2FA are Supported!**
+##### How to First Login a Bot
+
+* Using Email 2FA
+	* Only fill in the `user` and `pass` fields for the bot
+	* Start up CSGOFloat
+	* It will tell you that an auth code was sent to your email
+	* Input the code from your email into the `auth` field for the bot
+	* Restart CSGOFloat
+	* It should successfully login and create a `{username}.sentry` file in a `sentry` folder in the main directory
+	* The `auth` field can now be removed in your login file for further logins
+* Using Mobile 2FA
+	* Fill in the `user` and `pass` fields for the bot
+	* Fill in the `auth` field with the `shared_secret` for your account
+	* Start up CSGOFloat
+	* It should successfully login and create a `{username}.sentry` file in a `sentry` folder in the main directory
+	* You'll need to keep the `shared_secret` field filled in for future logins

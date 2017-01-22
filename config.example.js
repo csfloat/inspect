@@ -22,6 +22,7 @@ module.exports = {
         {
             "user": "USERNAME",
             "pass": "PASSWORD",
+            // You can either use a 2FA email/mobile token (5 letters/digits), or the shared_secret of mobile 2FA
             "auth": "2FA_TOKEN"
         },
         {
