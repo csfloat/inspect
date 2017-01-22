@@ -43,43 +43,39 @@ const createJob = function(data, saveCallback) {
 const lookupHandler = function (params) {
     // Check if the item is already in the DB
     DB.getItemData(params, function (err, doc) {
+        let userAlreadyInQueue = resController.isUserInQueue(params.ip);
+
+        // Add the user to the res controller
+        resController.addUserRequest(params);
+
         // If we got the result, just return it
         if (doc) {
             gameData.addAdditionalItemProperties(doc);
 
-            if (params.type === 'http') params.res.json({'iteminfo': doc});
-            else params.res.emit('floatmessage', {'iteminfo': doc});
-
+            resController.respondFloatToUser(params.ip, params, {'iteminfo': doc});
             return;
         }
 
         // Check if there is a bot online to process this request
         if (!botController.hasBotOnline()) {
-            if (params.type === 'http') params.res.status(503).json({error: errorMsgs[5], code: 5});
-            else params.res.emit('errormessage', errorMsgs[5]);
-
+            resController.respondErrorToUser(params.ip, params, {error: errorMsgs[5], code: 5}, 503);
             return;
         }
 
         // If the flag is set, check if the user already has a request in the queue
-        if (!CONFIG.allow_simultaneous_requests && resController.isUserInQueue(params.ip)) {
-            if (params.type === 'http') params.res.status(400).json({error: errorMsgs[3], code: 3});
-            else params.res.emit('errormessage', errorMsgs[3]);
-
+        if (!CONFIG.allow_simultaneous_requests && userAlreadyInQueue) {
+            resController.respondErrorToUser(params.ip, params, {error: errorMsgs[3], code: 3}, 400);
             return;
         }
-
-        // Add the user to the queue
-        resController.addUserRequest(params);
-
-        let res = params.res;
 
         // Remove this object since it can't be serialized in Redis
         delete params.res;
 
         // Create the job, if it is a websocket user, tell them
         createJob(params, () => {
-            if (params.type === 'ws') res.emit('infomessage', `Your request for ${params.a} is in the queue`);
+            if (params.type === 'ws') {
+                resController.respondInfoToUser(params.ip, params, {'msg': `Your request for ${params.a} is in the queue`});
+            }
         });
     });
 };
@@ -177,7 +173,7 @@ if (CONFIG.socketio.enable) {
                 lookupHandler(params);
             }
             else {
-                socket.emit('errormessage', errorMsgs[2]);
+                socket.emit('errormessage', {error: errorMsgs[2], code: 2});
             }
         });
     });
@@ -228,14 +224,14 @@ queue.process('floatlookup', CONFIG.logins.length, (job, done) => {
         DB.insertItemData(itemData.iteminfo);
 
         gameData.addAdditionalItemProperties(itemData.iteminfo);
-        resController.respondToUser(job.data.ip, job.data, itemData);
+        resController.respondFloatToUser(job.data.ip, job.data, itemData);
 
         setTimeout(() => {
             done();
         }, delay);
     })
     .catch((err) => {
-        resController.respondToUser(job.data.ip, job.data, {error: errorMsgs[4], code: 4}, 500);
+        resController.respondErrorToUser(job.data.ip, job.data, {error: errorMsgs[4], code: 4}, 500);
         console.log('Job Error:', err);
         done(String(err));
     });
@@ -246,7 +242,7 @@ queue.on('job failed', function(id) {
     try {
         kue.Job.get(id, function(err, job) {
             if (job && job.data) {
-                resController.respondToUser(job.data.ip, job.data, {error: errorMsgs[4], code: 4}, 500);
+                resController.respondErrorToUser(job.data.ip, job.data, {error: errorMsgs[4], code: 4}, 500);
                 job.remove();
             }
         });
