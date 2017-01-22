@@ -180,11 +180,11 @@ You can install the Node.js dependencies using `npm install` or `yarn install`
 	* It will tell you that an auth code was sent to your email
 	* Input the code from your email into the `auth` field for the bot
 	* Restart CSGOFloat
-	* It should successfully login and create a `{username}.sentry` file in a `sentry` folder in the main directory
+	* It should successfully login and create a `{username}.sentry` file in the `sentry` folder in the main directory
 	* The `auth` field can now be removed in your login file for further logins
 * Using Mobile 2FA
 	* Fill in the `user` and `pass` fields for the bot
 	* Fill in the `auth` field with the `shared_secret` for your account
 	* Start up CSGOFloat
-	* It should successfully login and create a `{username}.sentry` file in a `sentry` folder in the main directory
-	* You'll need to keep the `shared_secret` field filled in for future logins
+	* It should successfully login and create a `{username}.sentry` file in the `sentry` folder in the main directory
+	* You'll need to keep the `auth` field filled in for future logins
