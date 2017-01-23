@@ -4,6 +4,13 @@
   </a>
 </p>
 
+[![GitHub stars](https://img.shields.io/github/stars/Step7750/CSGOFloat.svg)](https://github.com/Step7750/CSGOFloat/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/Step7750/CSGOFloat.svg)](https://github.com/Step7750/CSGOFloat/network)
+[![GitHub issues](https://img.shields.io/github/issues/Step7750/CSGOFloat.svg)](https://github.com/Step7750/CSGOFloat/issues)
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/Step7750/CSGOFloat/rewrite/LICENSE)
+[![Website](https://img.shields.io/website-up-down-green-red/https/csgofloat.com.svg)]()
+[![Chrome Web Store](https://img.shields.io/chrome-web-store/d/jjicbefpemnphinccgikpdaagjebbnhg.svg)]()
+
 CSGOFloat is a free and open source API service that allows you to obtain the float and paint seed of any CSGO item using its inspect link.
 
 ## Table of Contents
