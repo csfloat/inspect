@@ -7,7 +7,7 @@
 [![GitHub stars](https://img.shields.io/github/stars/Step7750/CSGOFloat.svg)](https://github.com/Step7750/CSGOFloat/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/Step7750/CSGOFloat.svg)](https://github.com/Step7750/CSGOFloat/network)
 [![GitHub issues](https://img.shields.io/github/issues/Step7750/CSGOFloat.svg)](https://github.com/Step7750/CSGOFloat/issues)
-[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/Step7750/CSGOFloat/rewrite/LICENSE)
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/Step7750/CSGOFloat/LICENSE)
 [![Website](https://img.shields.io/website-up-down-green-red/https/csgofloat.com.svg)](https://csgofloat.com)
 [![Chrome Web Store](https://img.shields.io/chrome-web-store/d/jjicbefpemnphinccgikpdaagjebbnhg.svg)](https://chrome.google.com/webstore/detail/csgofloat-market-checker/jjicbefpemnphinccgikpdaagjebbnhg)
 
