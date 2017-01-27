@@ -1,203 +1,91 @@
-var kue = require('kue'),
+const fs = require('fs'),
+    kue = require('kue'),
     queue = kue.createQueue(),
-    cp = require('child_process'),
-    dbhandler = require('./dbhandler'),
-    fs = require('fs'),
-    inspect_url = require("./inspect_url"),
-    CONFIG = require("./config");
+    CONFIG = require('./config'),
+    utils = require('./lib/utils'),
+    InspectURL = require('./lib/inspect_url'),
+    botController = new (require('./lib/bot_controller'))(),
+    resController = new (require('./lib/res_controller'))(),
+    DB = new (require('./lib/db'))(CONFIG.database_url),
+    gameData = new (require('./lib/game_data'))(CONFIG.game_files_update_interval, CONFIG.enable_game_file_updates);
 
-// API Variables
-var isValveOnline = false; // boolean that defines whether all the bots are offline or not
-var apiObjs = {}; // Holds the request objects
-var maxATTEMPTS = CONFIG.max_attempts; // Number of attempts for each request
-var failedAttempts = {};
+const errorMsgs = {
+    1: 'Improper Parameter Structure',
+    2: 'Invalid Inspect Link Structure',
+    3: 'You may only have one pending request at a time',
+    4: 'Valve\'s servers didn\'t reply in time',
+    5: 'Valve\'s servers appear to be offline, please try again later'
+};
 
-// BOT Variables
-var bot_number = CONFIG.logins.length; // Stores the number of bots
-var botData = []; // Stores current bot about regarding their job, child, ready/busy state, and done objects
-var requestWait = CONFIG.request_delay // Milliseconds to wait between requests to Valve
-var onlyRestart = false;
-
-// Push default bot values of them being offline
-for (var i = 0; i < bot_number; i++) {
-    botData[i] = {};
-    botData[i]["ready"] = 0;
-    botData[i]["busy"] = 1;
-    botData[i]["obj"] = null;
-    botData[i]["childid"] = null;
-    botData[i]["doneobj"] = null;
-    botData[i]["requested"] = null;
-}
-
-
-if (bot_number == 0) {
-    console.log('There are no bot logins, please input some into config.json. Exiting...');
+if (CONFIG.logins.length == 0) {
+    console.log('There are no bot logins. Please add some in config.json');
     process.exit(1);
 }
 
-// Make sure at least one of HTTP or HTTPS is enabled
-if (!CONFIG.https.enable && !CONFIG.http.enable) {
-    console.log('You must enable at least one of HTTP or HTTPS in the config');
-    process.exit(1);
+// If the sentry folder doesn't exist, create it
+if (!utils.isValidDir('sentry')) {
+    console.log('Creating sentry directory');
+    fs.mkdirSync('sentry');
 }
 
-function forkChild(index) {
-    // Get the bot login info
-    var cur_login = CONFIG.logins[index];
-    cur_login["index"] = index;
+for (let loginData of CONFIG.logins) {
+    botController.addBot(loginData, CONFIG.bot_settings);
+}
 
-    // Fork the bot
-    console.log("Creating child process for " + cur_login["user"]);
-    var newchild = cp.fork('./child.js', [JSON.stringify(cur_login, null, 2)]);
+const createJob = function(data, saveCallback) {
+    queue.create('floatlookup', data)
+    .ttl(CONFIG.bot_settings.request_ttl)
+    .attempts(CONFIG.bot_settings.max_attempts)
+    .removeOnComplete(true)
+    .save(saveCallback);
+};
 
-    newchild.on('message', function(m) {
+const lookupHandler = function (params) {
+    // Check if the item is already in the DB
+    DB.getItemData(params, function (err, doc) {
+        let userAlreadyInQueue = resController.isUserInQueue(params.ip);
 
-        if (m[0] == "ready") {
-            // This bot is logged into CSGO and is ready
-            console.log("Bot " + m[1] + " is ready");
+        // Add the user to the res controller
+        resController.addUserRequest(params);
 
-            // Set values are a ready bot
-            botData[m[1]]["ready"] = 1;
-            botData[m[1]]["busy"] = 0;
+        // If we got the result, just return it
+        if (doc) {
+            gameData.addAdditionalItemProperties(doc);
 
-            var isActive = true;
-            for (var activeindex = 0; activeindex < botData.length; activeindex++) {
-                if (botData[activeindex]["ready"] == 0) {
-                    isActive = false;
-                    break;
-                }
-            }
-
-            if (isActive) {
-                // All the bots are online and ready
-                console.log("Bots are ready to accept requests");
-                if (io) io.emit('successmessage', "Valve's servers are online!");
-                isValveOnline = true;
-
-                // If a bot errored out, only restart the queue
-                if (onlyRestart) {
-                    apiObjs = {};
-                }
-                else {
-                    resetQueue();
-                }
-            }
+            resController.respondFloatToUser(params.ip, params, {'iteminfo': doc});
+            return;
         }
-        else if (m[0] == "genericmsg") {
-            // Emit this message to a websocket client
-            io.to(m[3]).emit(m[1], m[2]);
+
+        // Check if there is a bot online to process this request
+        if (!botController.hasBotOnline()) {
+            resController.respondErrorToUser(params.ip, params, {error: errorMsgs[5], code: 5}, 503);
+            return;
         }
-        else if (m[0] == "itemdata") {
-            // Tell kue that this job is finished
 
-            // Call done on Kue
-            if (m[1] in botData) {
-                // Find out how long this request took
-                var currenttime = new Date().getTime();
-                var offset = currenttime-botData[m[1]]["requested"];
+        // If the flag is set, check if the user already has a request in the queue
+        if (!CONFIG.allow_simultaneous_requests && userAlreadyInQueue) {
+            resController.respondErrorToUser(params.ip, params, {error: errorMsgs[3], code: 3}, 400);
+            return;
+        }
 
-                // We ensure a delay of requestWait between requests for this bot
-                if (offset < requestWait) {
-                    console.log("Delaying for " + (requestWait-offset) + "ms, it took " + offset + "ms for the request " + botData[m[1]]["childid"]);
+        // Remove this object since it can't be serialized in Redis
+        delete params.res;
 
-                    setTimeout(function(){
-                        botData[m[1]]["doneobj"]();
-
-                        // This bot is no longer busy (MAKE SURE THIS IS CALLED AFTER DONE)
-                        // Otherwise, Kue will asign the bot with a new request and overwrite the old done object
-                        // Then it will time out this good request and block the user
-                        botData[m[1]]["busy"] = 0;
-
-                    }, (requestWait-offset));
-                }
-                else {
-                    // Just call done
-                    botData[m[1]]["doneobj"]();
-
-                    // This bot is no longer busy (MAKE SURE THIS IS CALLED AFTER DONE)
-                    botData[m[1]]["busy"] = 0;
-                }
-
-                // Clear up the attempts
-                if (botData[m[1]]["childid"] in failedAttempts) {
-                    console.log("Clearing attempts for " + botData[m[1]]["childid"]);
-                    delete failedAttempts[botData[m[1]]["childid"]];
-                }
+        // Create the job, if it is a websocket user, tell them
+        createJob(params, () => {
+            if (params.type === 'ws') {
+                resController.respondInfoToUser(params.ip, params, {'msg': `Your request for ${params.a} is in the queue`});
             }
-
-            // Add the float to the DB so that it can be used next time for this same request
-            dbhandler.insertFloat(m[3]["iteminfo"], function (err, result) {
-                if (!err) {
-                    console.log("Inserted the result into the db");
-                }
-                if (m[2] != null) {
-                    // This is a websocket request
-
-                    io.to(m[2]).emit("floatmessage", m[3]);
-
-                    // found out the ip of the user and remove it from the blacklist
-                    if (m[2] in io.sockets.connected) {
-                        var socketip = io.sockets.connected[m[2]].request.connection.remoteAddress;
-                        if (socketip in apiObjs) {
-                            delete apiObjs[socketip];
-                        }
-                    }
-                }
-                else if (m[4] != null) {
-                    // This is an HTTP request
-
-                    // Reply to it and delete the user from the blacklist
-                    if (apiObjs[m[4]] != undefined) {
-                        apiObjs[m[4]].json(m[3]);
-                        delete apiObjs[m[4]];
-                    }
-                }
-            });
-        }
-        else if (m[0] == "unready") {
-            console.log("Bot " + m[1] + " is not ready");
-
-            // Bot is no longer ready
-            botData[m[1]]["ready"] = 0;
-
-            // We don't need to instantiate the queue again
-            onlyRestart = true;
-
-            // Tell websocket users
-            if (isValveOnline && io) {
-                io.emit('errormessage', "Valve's servers appear to be offline");
-            }
-
-            // Don't let people put in requests now
-            isValveOnline = false;
-
-            // Kill the child and relaunch it
-            botData[m[1]]["obj"].kill();
-
-            // Fork the bot again and log it in
-            forkChild(m[1]);
-            botData[m[1]]["obj"].send(['login']);
-        }
+        });
     });
-
-    // Store the bot in an object
-    botData[index]["obj"] = newchild;
-}
-
-// Create the child processes that handle the communication to Valve
-for (var x = 0; x < bot_number; x++) {
-    // Create child process with it's login info
-    forkChild(x);
-}
-
-dbhandler.initialize(CONFIG.database.url, CONFIG.database.port, { auto_reconnect: true })
+};
 
 // Setup and configure express
-var app = require("express")();
+let app = require('express')();
 
-app.get("/", function(req, res) {
+app.get('/', function(req, res) {
     // Allow some origins
-    if (req.get('origin') != undefined) {
+    if (CONFIG.allowed_origins.length > 0 && req.get('origin') != undefined) {
         // check to see if its a valid domain
         if (CONFIG.allowed_origins.indexOf(req.get('origin')) !== -1) {
             res.header('Access-Control-Allow-Origin', req.get('origin'));
@@ -205,351 +93,174 @@ app.get("/", function(req, res) {
         }
     }
 
-    // Verify proper parameters
-    var inspectURL;
+    // Get and parse parameters
+    let thisLink;
 
-    if ("url" in req.query) {
-        inspectURL = req.query.url;
-    } else if ("a" in req.query && "d" in req.query && ("s" in req.query || "m" in req.query)) {
-        inspectURL = inspect_url.build(req.query);
-    } else {
-        res.status(400).json({ error: "Improper Parameter Structure", code: 1 });
+    if ('url' in req.query) thisLink = new InspectURL(req.query.url);
+    else if ('a' in req.query && 'd' in req.query && ('s' in req.query || 'm' in req.query)) thisLink = new InspectURL(req.query);
+
+    // Make sure the params are valid
+    if (!thisLink || !thisLink.getParams()) {
+        res.status(400).json({error: errorMsgs[2], code: 2});
         return;
     }
 
-    var lookupVars = inspect_url.parse(inspectURL);
+    // Look it up
+    let params = thisLink.getParams();
 
-    // Check if there are valid variables
-    if (!lookupVars) {
-        res.status(400).json({ error: "Invalid Inspect Link Structure", code: 2 });
-        return;
-    }
+    params.ip = req.connection.remoteAddress;
+    params.type = 'http';
+    params.res = res;
 
-    dbhandler.checkInserted(lookupVars, function(err, result) {
-        if (result) {
-            res.json({ iteminfo: result });
-            return;
-        }
-
-        if (!isValveOnline) {
-            res.status(503).json({ error: "Valve's servers appear to be offline, please try again later", code: 5 });
-            return;
-        }
-
-        var userIP = req.connection.remoteAddress;
-
-        if (userIP in apiObjs) {
-            res.status(400).json({ error: "You may only have one pending request at a time", code: 3 });
-            return;
-        }
-
-        apiObjs[userIP] = res;
-        create_job(false, userIP, lookupVars);
-    });
+    lookupHandler(params);
 });
 
-var http_server = require("http").Server(app);
+let http_server = require('http').Server(app);
 
-var https_server;
+let https_server;
 
 if (CONFIG.https.enable) {
-    var credentials = {
+    const credentials = {
         key: fs.readFileSync(CONFIG.https.key_path, 'utf8'),
         cert: fs.readFileSync(CONFIG.https.cert_path, 'utf8'),
         ca: fs.readFileSync(CONFIG.https.ca_path, 'utf8')
     };
 
-    https_server = require("https").Server(credentials, app);
+    https_server = require('https').Server(credentials, app);
 }
 
-var io;
+
+if (CONFIG.http.enable) {
+    http_server.listen(CONFIG.http.port);
+    console.log('Listening for HTTP on port: ' + CONFIG.http.port);
+}
+
+if (CONFIG.https.enable) {
+    https_server.listen(CONFIG.https.port);
+    console.log('Listening for HTTPS on port: ' + CONFIG.https.port);
+}
+
 
 if (CONFIG.socketio.enable) {
+    let io;
+
     if (https_server) {
-        io = require("socket.io")(https_server);
+        io = require('socket.io')(https_server);
+        console.log('Listening for HTTPS websocket connections on port: ' + CONFIG.https.port);
     }
     else {
         // Fallback onto HTTP for socket.io
-        io = require("socket.io")(http_server);
+        io = require('socket.io')(http_server);
+        console.log('Listening for HTTP websocket connections on port: ' + CONFIG.http.port);
     }
 
-    if (CONFIG.socketio.origins != "") {
-        io.set("origins", CONFIG.socketio.origins);
-    }
-}
-
-/*
-    Handles websocket float request
-*/
-function LookupHandler(link, socket) {
-    lookupVars = inspect_url.parse(link);
-
-    if (lookupVars == false) {
-        socket.emit("errormessage", "We couldn't parse the inspect link, are you sure it is correct?");
-        return;
+    if (CONFIG.socketio.origins) {
+        io.set('origins', CONFIG.socketio.origins);
     }
 
-    dbhandler.checkInserted(lookupVars, function (err, result) {
-        if (result) {
-            socket.emit("floatmessage", { iteminfo: result });
-            return;
-        }
+    io.on('connection', function(socket) {
+        socket.emit('joined');
 
-        if (!isValveOnline) {
-            socket.emit("errormessage", "Valve's servers appear to be offline, please try again later");
-            return;
-        }
+        socket.on('lookup', function(link) {
+            link = new InspectURL(link);
+            let params = link.getParams();
 
-        var socketip = socket.request.connection.remoteAddress;
+            if (link && params) {
+                params.ip = socket.request.connection.remoteAddress;
+                params.type = 'ws';
+                params.res = socket;
 
-        if (socketip in apiObjs) {
-            socket.emit("errormessage", "You may only have one pending request at a time");
-            return;
-        }
-
-        apiObjs[socketip] = true;
-        create_job(socket, false, lookupVars);
-    });
-}
-
-/*
-    Creates a Kue job given a float request
-*/
-function create_job(socket, request, lookupVars) {
-    // Support for http and websockets
-
-    // Create job with TTL of 2000, it will be considered a fail if a child process
-    // doesn't return a value within 3sec
-
-    var job = queue.create('floatlookup', {
-        socketid: socket.id,
-        request: request,
-        s: lookupVars.s,
-        a: lookupVars.a,
-        d: lookupVars.d,
-        m: lookupVars.m
-    }).ttl(2000).attempts(maxATTEMPTS).removeOnComplete(true).save(function (err) {
-        if (err) {
-            console.log("There was an error adding the job to the queue");
-            console.log(err);
-            if (socket != false) {
-                socket.emit("errormessage", "There was an error adding the job to the queue");
-            }
-        }
-        else {
-            if (socket != false) {
-                socket.emit("infomessage", "Your request for " + lookupVars.a + " is in the queue");
-            }
-        }
-    });
-}
-
-/*
-    Resets the queue (initiated once the bots login)
-*/
-function resetQueue() {
-    if (CONFIG.http.enable) {
-        http_server.listen(CONFIG.http.port);
-        console.log("Listening for HTTP on port: " + CONFIG.http.port);
-    }
-
-    if (CONFIG.https.enable) {
-        https_server.listen(CONFIG.https.port);
-        console.log("Listening for HTTPS on port: " + CONFIG.https.port);
-    }
-
-    // Socket.io event handler
-    if (CONFIG.socketio.enable) {
-        if (CONFIG.https.enable) {
-            console.log("Listening for HTTPS websocket connections on port: " + CONFIG.https.port);
-        }
-        else {
-            console.log("Listening for HTTP websocket connections on port: " + CONFIG.http.port);
-        }
-
-        io.on('connection', function(socket) {
-            socket.emit('joined');
-            socket.emit('infomessage', 'You no longer have to login! Have fun!');
-
-            if (!isValveOnline) {
-                socket.emit('errormessage', "Valve's servers appear to be offline, please try again later");
-            }
-
-            socket.on('lookup', function(link) {
-                LookupHandler(link, socket);
-            });
-        });
-    }
-
-    // Remove any current inactive jobs in the Kue
-    queue.inactive( function( err, ids ) {
-        ids.forEach( function( id ) {
-            try {
-                kue.Job.get( id, function( err, job ) {
-                    if (job != undefined) {
-                        job.remove();
-                    }
-                });
-            }
-            catch (err) {
-                console.log("Couldn't obtain job " + id + " when parsing inactive jobs");
-            }
-        });
-    });
-
-    // Remove any current active jobs in the Kue
-    queue.active( function( err, ids ) {
-        ids.forEach( function( id ) {
-            try {
-                kue.Job.get( id, function( err, job ) {
-                    if (job != undefined) {
-                        job.remove();
-                    }
-                });
-            }
-            catch (err) {
-                console.log("Couldn't obtain job " + id + " when parsing active jobs");
-            }
-        });
-    });
-
-    console.log("Removed lingering jobs from previous sessions");
-
-    restart_queue();
-}
-
-
-queue.on('job error', function(id, err){
-    console.log("Job error " + err + " with " + id);
-    // There was a timeout of 3sec, reset the bots busy state
-
-    // Find which bot was handling this request
-    for(var x2 = 0; x2 < bot_number; x2++) {
-        if (id == botData[x2]["childid"]) {
-            // found the index of the bot, change the status
-            console.log("Found bot to reset value " + x2);
-
-            // Increment the failed attempt
-            if (id in failedAttempts) {
-                failedAttempts[id] += 1;
+                lookupHandler(params);
             }
             else {
-                failedAttempts[id] = 1;
+                socket.emit('errormessage', {error: errorMsgs[2], code: 2});
             }
+        });
+    });
+}
 
-            if (failedAttempts[id] == maxATTEMPTS) {
-
-                // Clear up the attempt
-                if (id in failedAttempts) {
-                    delete failedAttempts[id];
+// Remove any current inactive jobs in the Kue
+queue.inactive(function(err, ids) {
+    ids.forEach(function(id) {
+        try {
+            kue.Job.get(id, function(err, job) {
+                if (job != undefined) {
+                    job.remove();
                 }
-
-                // Tell the client
-                try {
-                    kue.Job.get(id, function (err, job) {
-                        console.log("Failed Job " + id);
-                        if (job["data"]["socketid"] != undefined) {
-                            io.to(job["data"]["socketid"]).emit("errormessage", "We couldn't retrieve the item data, are you sure you inputted the correct inspect link?");
-                            var socketip = io.sockets.connected[job["data"]["socketid"]].request.connection.remoteAddress;
-                            if (socketip in apiObjs) {
-                                delete apiObjs[socketip];
-                            }
-                        }
-                        else if (job["data"]["request"] != undefined && job["data"]["request"] in apiObjs) {
-                            // failed http request
-                            apiObjs[job["data"]["request"]].status(500).json({
-                                error: "Valve's servers didn't reply in time",
-                                code: 4
-                            });
-                            delete apiObjs[job["data"]["request"]];
-                        }
-
-                    });
-                }
-                catch (err) {
-                    console.log("Failed to get job data for the failed job");
-                }
-            }
-
-            // Turns out that if you don't call "done", Kue thinks the bot is still occupied
-            botData[x2]["doneobj"]();
-            botData[x2]["busy"] = 0;
-            botData[x2]["childid"] = -1;
-
-            break;
+            });
         }
+        catch (err) {
+            console.log('Couldn\'t obtain job', id, 'when parsing inactive jobs');
+        }
+    });
+});
+
+// Remove any current active jobs in the Kue
+queue.active(function(err, ids) {
+    ids.forEach(function(id) {
+        try {
+            kue.Job.get(id, function(err, job) {
+                if (job != undefined) {
+                    job.remove();
+                }
+            });
+        }
+        catch (err) {
+            console.log('Couldn\'t obtain job', id, 'when parsing active jobs');
+        }
+    });
+});
+
+queue.process('floatlookup', CONFIG.logins.length, (job, done) => {
+    resController.insertJobDoneObj(job.data.ip, job.data, done);
+
+    botController.lookupFloat(job.data)
+    .then((itemData) => {
+        console.log('Recieved itemData for ' + job.data.a + ' ID: ' + job.id);
+
+        // Save and remove the delay attribute
+        let delay = itemData.delay;
+        delete itemData.delay;
+
+        // add the item info to the DB
+        DB.insertItemData(itemData.iteminfo);
+
+        gameData.addAdditionalItemProperties(itemData.iteminfo);
+        resController.respondFloatToUser(job.data.ip, job.data, itemData);
+
+        setTimeout(() => {
+            done();
+        }, delay);
+    })
+    .catch((err) => {
+        resController.respondErrorToUser(job.data.ip, job.data, {error: errorMsgs[4], code: 4}, 500);
+        console.log('Job Error:', err);
+        done(String(err));
+    });
+});
+
+queue.on('job error', function(id, err){
+    if (err !== 'TTL exceeded') console.log(`Job ${id} Error: ${err}`);
+    else {
+        kue.Job.get(id, function(err, job) {
+            if (!job || !job.data) return;
+
+            let attempts = resController.incrementJobAttempts(job.data.ip, job.data);
+
+            if (attempts !== CONFIG.bot_settings.max_attempts) return;
+
+            console.log(`Job ${id} Failed!`);
+
+            resController.callJobDoneObj(job.data.ip, job.data);
+            resController.respondErrorToUser(job.data.ip, job.data, {error: errorMsgs[4], code: 4}, 500);
+            job.remove();
+        });
     }
 });
 
-
-/*
-    Restarts the queue
-*/
-function restart_queue() {
-    /*
-    kue job failed handlers
-    */
-    queue.process('floatlookup', bot_number, function(job, ctx, done){
-        // try to find an open bot
-        bot_found = null;
-        bot_index = -1;
-
-        for(var x = 0; x < bot_number; x++) {
-            if (botData[x]["busy"] == 0 && botData[x]["ready"] == 1) {
-
-                var bot_found = botData[x]["obj"];
-                botData[x]["doneobj"] = done;
-
-                botData[x]["childid"] = job.id;
-                botData[x]["requested"] = new Date().getTime();
-                botData[x]["busy"] = 1;
-
-                var bot_index = x;
-
-                break;
-            }
-        }
-
-        if (bot_found != null) {
-            // follow through with sending the request
-            console.log("Sending request to " + bot_index + " with a job id of " + job.id);
-
-            var data = job["data"];
-            bot_found.send(['floatrequest', data, done]);
-        }
-        else {
-            console.log("There is no bot to fullfill this request, they must be down.");
-        }
-    });
-}
-
-/*
-    Returns a boolean as to whether the specified path is a directory and exists
-*/
-function isValidDir(path) {
-    try {
-        return fs.statSync(path).isDirectory();
-    } catch (e) {
-        return false;
-    }
-}
-
-// If the sentry folder doesn't exist, create it
-if (!isValidDir("sentry")) {
-    console.log("Creating sentry directory");
-    fs.mkdirSync("sentry");
-}
-
-
-// Login the bots
-for (var x = 0; x < bot_number; x++) {
-    botData[x]["obj"].send(["login"]);
-}
-
-process.once("SIGTERM", function(sig) {
-    // Graceful shutdown of Kue
-    queue.shutdown(5000, function(err) {
-        console.log("Kue shutdown: ", err || "");
+process.once('SIGTERM', () => {
+    queue.shutdown(5000, (err) => {
+        console.log('Kue shutdown: ', err || '');
         process.exit(0);
     });
 });

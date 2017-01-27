@@ -1,8 +1,31 @@
-# CSGOFloat
+<p align="center">
+  <a href="https://csgofloat.com/">
+    <img src="http://i.imgur.com/dzGQk7W.png"/>
+  </a>
+</p>
 
-Source Code that Powers the CSGOFloat API
+[![GitHub stars](https://img.shields.io/github/stars/Step7750/CSGOFloat.svg)](https://github.com/Step7750/CSGOFloat/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/Step7750/CSGOFloat.svg)](https://github.com/Step7750/CSGOFloat/network)
+[![GitHub issues](https://img.shields.io/github/issues/Step7750/CSGOFloat.svg)](https://github.com/Step7750/CSGOFloat/issues)
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/Step7750/CSGOFloat/rewrite/LICENSE)
+[![Website](https://img.shields.io/website-up-down-green-red/https/csgofloat.com.svg)](https://csgofloat.com)
+[![Chrome Web Store](https://img.shields.io/chrome-web-store/d/jjicbefpemnphinccgikpdaagjebbnhg.svg)](https://chrome.google.com/webstore/detail/csgofloat-market-checker/jjicbefpemnphinccgikpdaagjebbnhg)
 
-The frontend of the site is on the gh-pages branch, if you'd like to take a look at it.
+CSGOFloat is a free and open source API service that allows you to obtain the float and paint seed of any CSGO item using its inspect link.
+
+## Table of Contents
+  * [API](https://github.com/Step7750/CSGOFloat#api)
+  	* [`GET /`](https://github.com/Step7750/CSGOFloat#get-)
+		* [Examples](https://github.com/Step7750/CSGOFloat#examples)
+	* [`GET /` (Using an Inspect URL)](https://github.com/Step7750/CSGOFloat#get--using-an-inspect-url)
+		* [Examples](https://github.com/Step7750/CSGOFloat#examples-1)
+	* [Reply](https://github.com/Step7750/CSGOFloat#reply)
+	* [Errors](https://github.com/Step7750/CSGOFloat#errors)
+  * [How to Run](https://github.com/Step7750/CSGOFloat#how-to-run)
+  	* [Dependencies](https://github.com/Step7750/CSGOFloat#dependencies)
+	* [Steps](https://github.com/Step7750/CSGOFloat#steps)
+	* [How to First Login a Bot](https://github.com/Step7750/CSGOFloat#how-to-first-login-a-bot)
+
 
 # API
 
@@ -17,7 +40,7 @@ HTTPS PORT: `1738`
 HTTP PORT: `1739`
 
 
-#### `GET /`
+### `GET /`
 
 Parameters s, a, d, m can be found in the inspect link of a csgo item. 
 
@@ -36,7 +59,7 @@ Parameters s, a, d, m can be found in the inspect link of a csgo item.
 
 
 
-#### `GET /` (Using an Inspect URL)
+### `GET /` (Using an Inspect URL)
 
 | Parameter     | Description   |
 |:-------------:|:-------------|
@@ -166,11 +189,25 @@ You can install the Node.js dependencies using `npm install` or `yarn install`
 1. Copy `config.example.js` to `config.js`
 2. Add your bot(s) login information to `config.js`
 3. Edit `config.js` with your desired settings
-4. Update the `gamefiles/` directory from a CS:GO installation (ensure the csgo_english file is encoded in UTF-8)
-5. Ensure MongoDB and redis are running
-6. Run `node index.js` in the main directory
-7. Navigate to the IP that the server is hosted on and query the API using the docs above!
+4. Ensure MongoDB and Redis are running
+5. Run `node index.js` in the main directory
+6. Navigate to the IP that the server is hosted on and query the API using the docs above!
 
-**Note**: When you first login a bot, it will send a 2FA code to your email. Enter the 2FA code into the "auth" field for that bot and restart CSGOFloat to successfully login.
+**If you have a config from v1.0, please update it to match the new parameters in v2.0+!**
 
-**Currently only Steam accounts without Mobile 2FA are Supported!**
+#### How to First Login a Bot
+
+* Using Email 2FA
+	* Only fill in the `user` and `pass` fields for the bot (make sure the `auth` field is empty or removed)
+	* Start up CSGOFloat
+	* It will tell you that an auth code was sent to your email
+	* Input the code from your email into the `auth` field for the bot
+	* Restart CSGOFloat
+	* It should successfully login and create a `{username}.sentry` file in the `sentry` folder in the main directory
+	* The `auth` field can now be removed in your login file for further logins
+* Using Mobile 2FA
+	* Fill in the `user` and `pass` fields for the bot
+	* Fill in the `auth` field with the `shared_secret` for the bot
+	* Start up CSGOFloat
+	* It should successfully login and create a `{username}.sentry` file in the `sentry` folder in the main directory
+	* You'll need to keep the `auth` field filled in for future logins
