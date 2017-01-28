@@ -161,6 +161,10 @@ if (CONFIG.socketio.enable) {
     io.on('connection', function(socket) {
         socket.emit('joined');
 
+        if (botController.hasBotOnline() === false) {
+            socket.emit('errormessage', {error: errorMsgs[5], code: 5});
+        }
+
         socket.on('lookup', function(link) {
             link = new InspectURL(link);
             let params = link.getParams();
@@ -176,6 +180,16 @@ if (CONFIG.socketio.enable) {
                 socket.emit('errormessage', {error: errorMsgs[2], code: 2});
             }
         });
+    });
+
+    botController.on('ready', () => {
+        console.log('Telling WS Users that Valve is online');
+        io.emit('successmessage', {'msg': 'Valve\'s servers are online!'});
+    });
+
+    botController.on('unready', () => {
+        console.log('Telling WS Users that Valve is offline');
+        io.emit('errormessage', {error: errorMsgs[5], code: 5});
     });
 }
 
