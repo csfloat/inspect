@@ -228,7 +228,7 @@ queue.active(function(err, ids) {
 queue.process('floatlookup', CONFIG.logins.length, (job, done) => {
     resController.insertJobDoneObj(job.data.ip, job.data, done);
 
-    botController.lookupFloat(job.data)
+    botController.lookupFloat(job.data, job.id)
     .then((itemData) => {
         console.log('Recieved itemData for ' + job.data.a + ' ID: ' + job.id);
 
