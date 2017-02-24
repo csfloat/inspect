@@ -263,7 +263,7 @@ queue.on('job error', function(id, err){
 
             if (attempts !== CONFIG.bot_settings.max_attempts) return;
 
-            console.log(`Job ${id} Failed!`);
+            console.log(`Job ${id} Failed! S: ${job.data.s} A: ${job.data.a} D: ${job.data.d} M: ${job.data.m}`);
 
             resController.callJobDoneObj(job.data.ip, job.data);
             resController.respondErrorToUser(job.data.ip, job.data, {error: errorMsgs[4], code: 4}, 500);
