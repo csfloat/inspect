@@ -203,7 +203,7 @@ queue.process(CONFIG.logins.length, (job, done) => {
     });
 });
 
-queue.on('job failed', function(job) {
+queue.on('job failed', (job) => {
     console.log(`Job Failed! S: ${job.data.s} A: ${job.data.a} D: ${job.data.d} M: ${job.data.m} IP: ${job.data.ip}`);
 
     resHandler.respondErrorToUser(job.data, {error: errorMsgs[4], code: 4}, 500);
