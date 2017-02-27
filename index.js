@@ -204,7 +204,7 @@ queue.process(CONFIG.logins.length, (job) => {
             }, delay);
         })
         .catch(() => {
-            console.log(`Valve Took Too Long for ${job.data.a}`);
+            console.log(`Request Timeout for ${job.data.a}`);
             reject();
         });
     });
