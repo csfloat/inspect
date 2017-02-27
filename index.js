@@ -1,11 +1,10 @@
 const fs = require('fs'),
-    kue = require('kue'),
-    queue = kue.createQueue(),
+    queue = new (require('./lib/queue'))(),
     CONFIG = require('./config'),
     utils = require('./lib/utils'),
     InspectURL = require('./lib/inspect_url'),
     botController = new (require('./lib/bot_controller'))(),
-    resController = new (require('./lib/res_controller'))(),
+    resHandler = require('./lib/res_handler'),
     DB = new (require('./lib/db'))(CONFIG.database_url),
     gameData = new (require('./lib/game_data'))(CONFIG.game_files_update_interval, CONFIG.enable_game_file_updates);
 
@@ -14,7 +13,8 @@ const errorMsgs = {
     2: 'Invalid Inspect Link Structure',
     3: 'You may only have one pending request at a time',
     4: 'Valve\'s servers didn\'t reply in time',
-    5: 'Valve\'s servers appear to be offline, please try again later'
+    5: 'Valve\'s servers appear to be offline, please try again later',
+    6: 'Something went wrong on our end, please try again'
 };
 
 if (CONFIG.logins.length == 0) {
@@ -32,51 +32,40 @@ for (let loginData of CONFIG.logins) {
     botController.addBot(loginData, CONFIG.bot_settings);
 }
 
-const createJob = function(data, saveCallback) {
-    queue.create('floatlookup', data)
-    .ttl(CONFIG.bot_settings.request_ttl)
-    .attempts(CONFIG.bot_settings.max_attempts)
-    .removeOnComplete(true)
-    .save(saveCallback);
-};
-
 const lookupHandler = function (params) {
     // Check if the item is already in the DB
-    DB.getItemData(params, function (err, doc) {
-        let userAlreadyInQueue = resController.isUserInQueue(params.ip);
-
-        // Add the user to the res controller
-        resController.addUserRequest(params);
-
+    DB.getItemData(params)
+    .then((doc) => {
         // If we got the result, just return it
         if (doc) {
             gameData.addAdditionalItemProperties(doc);
 
-            resController.respondFloatToUser(params.ip, params, {'iteminfo': doc});
+            resHandler.respondFloatToUser(params, {'iteminfo': doc});
+
             return;
         }
 
         // Check if there is a bot online to process this request
         if (!botController.hasBotOnline()) {
-            resController.respondErrorToUser(params.ip, params, {error: errorMsgs[5], code: 5}, 503);
+            resHandler.respondErrorToUser(params, {error: errorMsgs[5], code: 5}, 503);
             return;
         }
 
         // If the flag is set, check if the user already has a request in the queue
-        if (!CONFIG.allow_simultaneous_requests && userAlreadyInQueue) {
-            resController.respondErrorToUser(params.ip, params, {error: errorMsgs[3], code: 3}, 400);
+        if (!CONFIG.allow_simultaneous_requests && queue.isUserInQueue(params.ip)) {
+            resHandler.respondErrorToUser(params, {error: errorMsgs[3], code: 3}, 400);
             return;
         }
 
-        // Remove this object since it can't be serialized in Redis
-        delete params.res;
+        queue.addJob(params, CONFIG.bot_settings.max_attempts);
 
-        // Create the job, if it is a websocket user, tell them
-        createJob(params, () => {
-            if (params.type === 'ws') {
-                resController.respondInfoToUser(params.ip, params, {'msg': `Your request for ${params.a} is in the queue`});
-            }
-        });
+        if (params.type === 'ws') {
+            resHandler.respondInfoToUser(params, {'msg': `Your request for ${params.a} is in the queue`});
+        }
+    })
+    .catch((err) => {
+        console.log(`getItemData Promise rejected: ${err.message}`);
+        resHandler.respondErrorToUser(params, {error: errorMsgs[6], code: 6}, 500);
     });
 };
 
@@ -193,93 +182,36 @@ if (CONFIG.socketio.enable) {
     });
 }
 
-// Remove any current inactive jobs in the Kue
-queue.inactive(function(err, ids) {
-    ids.forEach(function(id) {
-        try {
-            kue.Job.get(id, function(err, job) {
-                if (job != undefined) {
-                    job.remove();
-                }
-            });
-        }
-        catch (err) {
-            console.log('Couldn\'t obtain job', id, 'when parsing inactive jobs');
-        }
-    });
-});
+queue.process(CONFIG.logins.length, (job) => {
+    return new Promise((resolve, reject) => {
+        botController.lookupFloat(job.data, job.id)
+        .then((itemData) => {
+            console.log(`Received itemData for ${job.data.a}`);
 
-// Remove any current active jobs in the Kue
-queue.active(function(err, ids) {
-    ids.forEach(function(id) {
-        try {
-            kue.Job.get(id, function(err, job) {
-                if (job != undefined) {
-                    job.remove();
-                }
-            });
-        }
-        catch (err) {
-            console.log('Couldn\'t obtain job', id, 'when parsing active jobs');
-        }
-    });
-});
+            // Save and remove the delay attribute
+            let delay = itemData.delay;
+            delete itemData.delay;
 
-queue.process('floatlookup', CONFIG.logins.length, (job, done) => {
-    resController.insertJobDoneObj(job.data.ip, job.data, done);
+            // add the item info to the DB
+            DB.insertItemData(itemData.iteminfo);
 
-    botController.lookupFloat(job.data, job.id)
-    .then((itemData) => {
-        console.log('Recieved itemData for ' + job.data.a + ' ID: ' + job.id);
+            gameData.addAdditionalItemProperties(itemData.iteminfo);
+            resHandler.respondFloatToUser(job.data, itemData);
 
-        // Save and remove the delay attribute
-        let delay = itemData.delay;
-        delete itemData.delay;
-
-        // add the item info to the DB
-        DB.insertItemData(itemData.iteminfo);
-
-        gameData.addAdditionalItemProperties(itemData.iteminfo);
-        resController.respondFloatToUser(job.data.ip, job.data, itemData);
-
-        setTimeout(() => {
-            done();
-        }, delay);
-    })
-    .catch((err) => {
-        resController.respondErrorToUser(job.data.ip, job.data, {error: errorMsgs[4], code: 4}, 500);
-        console.log('Job Error:', err);
-        done(String(err));
-    });
-});
-
-queue.on('job error', function(id, err){
-    if (err !== 'TTL exceeded') console.log(`Job ${id} Error: ${err}`);
-    else {
-        kue.Job.get(id, function(err, job) {
-            if (!job || !job.data) return;
-
-            let attempts = resController.incrementJobAttempts(job.data.ip, job.data);
-
-            if (attempts !== CONFIG.bot_settings.max_attempts) return;
-
-            console.log(`Job ${id} Failed! S: ${job.data.s} A: ${job.data.a} D: ${job.data.d} M: ${job.data.m} IP: ${job.data.ip}`);
-
-            resController.callJobDoneObj(job.data.ip, job.data);
-            resController.respondErrorToUser(job.data.ip, job.data, {error: errorMsgs[4], code: 4}, 500);
-            job.remove();
+            // Call done while satisfying the delay
+            setTimeout(() => {
+                resolve();
+            }, delay);
+        })
+        .catch(() => {
+            console.log(`Request Timeout for ${job.data.a}`);
+            reject();
         });
-    }
+    });
 });
 
-if (CONFIG.kue_ui && CONFIG.kue_ui.enable == true) {
-    console.log(`Listening for Kue UI on port: ${CONFIG.kue_ui.port}`);
-    kue.app.listen(CONFIG.kue_ui.port);
-}
+queue.on('job failed', (job) => {
+    console.log(`Job Failed! S: ${job.data.s} A: ${job.data.a} D: ${job.data.d} M: ${job.data.m} IP: ${job.data.ip}`);
 
-process.once('SIGTERM', () => {
-    queue.shutdown(5000, (err) => {
-        console.log('Kue shutdown: ', err || '');
-        process.exit(0);
-    });
+    resHandler.respondErrorToUser(job.data, {error: errorMsgs[4], code: 4}, 500);
 });

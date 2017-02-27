@@ -182,11 +182,9 @@ In order to retrieve float values for weapons in this way, you must have Steam a
 * node-csgo (v1.4 or higher)
 * socket.io
 * vdf
-* kue
 * long
 * express
 * mongodb
-* redis
 
 You can install the Node.js dependencies using `npm install` or `yarn install`
 
@@ -195,11 +193,13 @@ You can install the Node.js dependencies using `npm install` or `yarn install`
 1. Copy `config.example.js` to `config.js`
 2. Add your bot(s) login information to `config.js`
 3. Edit `config.js` with your desired settings
-4. Ensure MongoDB and Redis are running
+4. Ensure MongoDB is running
 5. Run `node index.js` in the main directory
 6. Navigate to the IP that the server is hosted on and query the API using the docs above!
 
 **If you have a config from v1.0, please update it to match the new parameters in v2.0+!**
+
+**v2.1.0 removes the need for Redis**
 
 #### How to First Login a Bot
 
