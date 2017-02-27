@@ -13,7 +13,8 @@ const errorMsgs = {
     2: 'Invalid Inspect Link Structure',
     3: 'You may only have one pending request at a time',
     4: 'Valve\'s servers didn\'t reply in time',
-    5: 'Valve\'s servers appear to be offline, please try again later'
+    5: 'Valve\'s servers appear to be offline, please try again later',
+    6: 'Error on CSGOFloat API, please try again'
 };
 
 if (CONFIG.logins.length == 0) {
@@ -33,14 +34,14 @@ for (let loginData of CONFIG.logins) {
 
 const lookupHandler = function (params) {
     // Check if the item is already in the DB
-    DB.getItemData(params, function (err, doc) {
-        let userAlreadyInQueue = queue.isUserInQueue(params.ip);
-
+    DB.getItemData(params)
+    .then((doc) => {
         // If we got the result, just return it
         if (doc) {
             gameData.addAdditionalItemProperties(doc);
 
             resHandler.respondFloatToUser(params, {'iteminfo': doc});
+
             return;
         }
 
@@ -49,6 +50,8 @@ const lookupHandler = function (params) {
             resHandler.respondErrorToUser(params, {error: errorMsgs[5], code: 5}, 503);
             return;
         }
+
+        let userAlreadyInQueue = queue.isUserInQueue(params.ip);
 
         // If the flag is set, check if the user already has a request in the queue
         if (!CONFIG.allow_simultaneous_requests && userAlreadyInQueue) {
@@ -61,6 +64,9 @@ const lookupHandler = function (params) {
         if (params.type === 'ws') {
             resHandler.respondInfoToUser(params, {'msg': `Your request for ${params.a} is in the queue`});
         }
+    })
+    .catch((err) => {
+        resHandler.respondErrorToUser(params, {error: `${errorMsgs[6]}: ${err.message}`, code: 6}, 500);
     });
 };
 
