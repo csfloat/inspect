@@ -4,7 +4,7 @@ const fs = require('fs'),
     utils = require('./lib/utils'),
     InspectURL = require('./lib/inspect_url'),
     botController = new (require('./lib/bot_controller'))(),
-    resController = new (require('./lib/res_controller'))(),
+    resHandler = require('./lib/res_handler'),
     DB = new (require('./lib/db'))(CONFIG.database_url),
     gameData = new (require('./lib/game_data'))(CONFIG.game_files_update_interval, CONFIG.enable_game_file_updates);
 
@@ -34,36 +34,31 @@ for (let loginData of CONFIG.logins) {
 const lookupHandler = function (params) {
     // Check if the item is already in the DB
     DB.getItemData(params, function (err, doc) {
-        let userAlreadyInQueue = resController.isUserInQueue(params.ip);
-
-        // Add the user to the res controller
-        resController.addUserRequest(params);
+        let userAlreadyInQueue = queue.isUserInQueue(params.ip);
 
         // If we got the result, just return it
         if (doc) {
             gameData.addAdditionalItemProperties(doc);
 
-            resController.respondFloatToUser(params.ip, params, {'iteminfo': doc});
+            resHandler.respondFloatToUser(params, {'iteminfo': doc});
             return;
         }
 
         // Check if there is a bot online to process this request
         if (!botController.hasBotOnline()) {
-            resController.respondErrorToUser(params.ip, params, {error: errorMsgs[5], code: 5}, 503);
+            resHandler.respondErrorToUser(params, {error: errorMsgs[5], code: 5}, 503);
             return;
         }
 
         // If the flag is set, check if the user already has a request in the queue
         if (!CONFIG.allow_simultaneous_requests && userAlreadyInQueue) {
-            resController.respondErrorToUser(params.ip, params, {error: errorMsgs[3], code: 3}, 400);
+            resHandler.respondErrorToUser(params, {error: errorMsgs[3], code: 3}, 400);
             return;
         }
 
-        delete params.res;
-
         queue.addJob(params, CONFIG.bot_settings.max_attempts, () => {
             if (params.type === 'ws') {
-                resController.respondInfoToUser(params.ip, params, {'msg': `Your request for ${params.a} is in the queue`});
+                resHandler.respondInfoToUser(params, {'msg': `Your request for ${params.a} is in the queue`});
             }
         });
     });
@@ -195,7 +190,7 @@ queue.process(CONFIG.logins.length, (job, done) => {
         DB.insertItemData(itemData.iteminfo);
 
         gameData.addAdditionalItemProperties(itemData.iteminfo);
-        resController.respondFloatToUser(job.data.ip, job.data, itemData);
+        resHandler.respondFloatToUser(job.data, itemData);
 
         // Call done while satisfying the delay
         setTimeout(() => {
@@ -211,6 +206,5 @@ queue.process(CONFIG.logins.length, (job, done) => {
 queue.on('job failed', function(job) {
     console.log(`Job Failed! S: ${job.data.s} A: ${job.data.a} D: ${job.data.d} M: ${job.data.m} IP: ${job.data.ip}`);
 
-    // Tell the user
-    resController.respondErrorToUser(job.data.ip, job.data, {error: errorMsgs[4], code: 4}, 500);
+    resHandler.respondErrorToUser(job.data, {error: errorMsgs[4], code: 4}, 500);
 });
