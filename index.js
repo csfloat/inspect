@@ -13,7 +13,8 @@ const errorMsgs = {
     2: 'Invalid Inspect Link Structure',
     3: 'You may only have one pending request at a time',
     4: 'Valve\'s servers didn\'t reply in time',
-    5: 'Valve\'s servers appear to be offline, please try again later'
+    5: 'Valve\'s servers appear to be offline, please try again later',
+    6: 'Something went wrong on our end, please try again'
 };
 
 if (CONFIG.logins.length == 0) {
@@ -33,14 +34,14 @@ for (let loginData of CONFIG.logins) {
 
 const lookupHandler = function (params) {
     // Check if the item is already in the DB
-    DB.getItemData(params, function (err, doc) {
-        let userAlreadyInQueue = queue.isUserInQueue(params.ip);
-
+    DB.getItemData(params)
+    .then((doc) => {
         // If we got the result, just return it
         if (doc) {
             gameData.addAdditionalItemProperties(doc);
 
             resHandler.respondFloatToUser(params, {'iteminfo': doc});
+
             return;
         }
 
@@ -51,16 +52,20 @@ const lookupHandler = function (params) {
         }
 
         // If the flag is set, check if the user already has a request in the queue
-        if (!CONFIG.allow_simultaneous_requests && userAlreadyInQueue) {
+        if (!CONFIG.allow_simultaneous_requests && queue.isUserInQueue(params.ip)) {
             resHandler.respondErrorToUser(params, {error: errorMsgs[3], code: 3}, 400);
             return;
         }
 
-        queue.addJob(params, CONFIG.bot_settings.max_attempts, () => {
-            if (params.type === 'ws') {
-                resHandler.respondInfoToUser(params, {'msg': `Your request for ${params.a} is in the queue`});
-            }
-        });
+        queue.addJob(params, CONFIG.bot_settings.max_attempts);
+
+        if (params.type === 'ws') {
+            resHandler.respondInfoToUser(params, {'msg': `Your request for ${params.a} is in the queue`});
+        }
+    })
+    .catch((err) => {
+        console.log(`getItemData Promise rejected: ${err.message}`);
+        resHandler.respondErrorToUser(params, {error: errorMsgs[6], code: 6}, 500);
     });
 };
 
@@ -177,29 +182,31 @@ if (CONFIG.socketio.enable) {
     });
 }
 
-queue.process(CONFIG.logins.length, (job, done) => {
-    botController.lookupFloat(job.data, job.id)
-    .then((itemData) => {
-        console.log(`Received itemData for ${job.data.a}`);
+queue.process(CONFIG.logins.length, (job) => {
+    return new Promise((resolve, reject) => {
+        botController.lookupFloat(job.data, job.id)
+        .then((itemData) => {
+            console.log(`Received itemData for ${job.data.a}`);
 
-        // Save and remove the delay attribute
-        let delay = itemData.delay;
-        delete itemData.delay;
+            // Save and remove the delay attribute
+            let delay = itemData.delay;
+            delete itemData.delay;
 
-        // add the item info to the DB
-        DB.insertItemData(itemData.iteminfo);
+            // add the item info to the DB
+            DB.insertItemData(itemData.iteminfo);
 
-        gameData.addAdditionalItemProperties(itemData.iteminfo);
-        resHandler.respondFloatToUser(job.data, itemData);
+            gameData.addAdditionalItemProperties(itemData.iteminfo);
+            resHandler.respondFloatToUser(job.data, itemData);
 
-        // Call done while satisfying the delay
-        setTimeout(() => {
-            done(true);
-        }, delay);
-    })
-    .catch(() => {
-        console.log(`Valve Took Too Long for ${job.data.a}`);
-        done(false);
+            // Call done while satisfying the delay
+            setTimeout(() => {
+                resolve();
+            }, delay);
+        })
+        .catch(() => {
+            console.log(`Valve Took Too Long for ${job.data.a}`);
+            reject();
+        });
     });
 });
 
