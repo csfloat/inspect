@@ -14,7 +14,7 @@ const errorMsgs = {
     3: 'You may only have one pending request at a time',
     4: 'Valve\'s servers didn\'t reply in time',
     5: 'Valve\'s servers appear to be offline, please try again later',
-    6: 'Error on CSGOFloat API, please try again'
+    6: 'Something went wrong on our end, please try again'
 };
 
 if (CONFIG.logins.length == 0) {
@@ -51,10 +51,8 @@ const lookupHandler = function (params) {
             return;
         }
 
-        let userAlreadyInQueue = queue.isUserInQueue(params.ip);
-
         // If the flag is set, check if the user already has a request in the queue
-        if (!CONFIG.allow_simultaneous_requests && userAlreadyInQueue) {
+        if (!CONFIG.allow_simultaneous_requests && queue.isUserInQueue(params.ip)) {
             resHandler.respondErrorToUser(params, {error: errorMsgs[3], code: 3}, 400);
             return;
         }
@@ -66,7 +64,8 @@ const lookupHandler = function (params) {
         }
     })
     .catch((err) => {
-        resHandler.respondErrorToUser(params, {error: `${errorMsgs[6]}: ${err.message}`, code: 6}, 500);
+        console.log(`getItemData Promise rejected: ${err.message}`);
+        resHandler.respondErrorToUser(params, {error: errorMsgs[6], code: 6}, 500);
     });
 };
 
