@@ -56,11 +56,11 @@ const lookupHandler = function (params) {
             return;
         }
 
-        queue.addJob(params, CONFIG.bot_settings.max_attempts, () => {
-            if (params.type === 'ws') {
-                resHandler.respondInfoToUser(params, {'msg': `Your request for ${params.a} is in the queue`});
-            }
-        });
+        queue.addJob(params, CONFIG.bot_settings.max_attempts);
+
+        if (params.type === 'ws') {
+            resHandler.respondInfoToUser(params, {'msg': `Your request for ${params.a} is in the queue`});
+        }
     });
 };
 
