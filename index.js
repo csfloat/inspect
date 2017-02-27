@@ -177,29 +177,31 @@ if (CONFIG.socketio.enable) {
     });
 }
 
-queue.process(CONFIG.logins.length, (job, done) => {
-    botController.lookupFloat(job.data, job.id)
-    .then((itemData) => {
-        console.log(`Received itemData for ${job.data.a}`);
+queue.process(CONFIG.logins.length, (job) => {
+    return new Promise((resolve, reject) => {
+        botController.lookupFloat(job.data, job.id)
+        .then((itemData) => {
+            console.log(`Received itemData for ${job.data.a}`);
 
-        // Save and remove the delay attribute
-        let delay = itemData.delay;
-        delete itemData.delay;
+            // Save and remove the delay attribute
+            let delay = itemData.delay;
+            delete itemData.delay;
 
-        // add the item info to the DB
-        DB.insertItemData(itemData.iteminfo);
+            // add the item info to the DB
+            DB.insertItemData(itemData.iteminfo);
 
-        gameData.addAdditionalItemProperties(itemData.iteminfo);
-        resHandler.respondFloatToUser(job.data, itemData);
+            gameData.addAdditionalItemProperties(itemData.iteminfo);
+            resHandler.respondFloatToUser(job.data, itemData);
 
-        // Call done while satisfying the delay
-        setTimeout(() => {
-            done(true);
-        }, delay);
-    })
-    .catch(() => {
-        console.log(`Valve Took Too Long for ${job.data.a}`);
-        done(false);
+            // Call done while satisfying the delay
+            setTimeout(() => {
+                resolve();
+            }, delay);
+        })
+        .catch(() => {
+            console.log(`Valve Took Too Long for ${job.data.a}`);
+            reject();
+        });
     });
 });
 
