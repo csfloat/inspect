@@ -50,11 +50,6 @@ module.exports = {
         "http://steamcommunity.com",
         "https://steamcommunity.com"
     ],
-    // Enable Kue UI to Monitor Jobs
-    "kue_ui": {
-        "enable": true,
-        "port": 3000
-    },
     // Bool to Allow Simultaneous Requests to the API from the same IP (WS and HTTP/HTTPS)
     "allow_simultaneous_requests": false,
     // Bool to enable game file updates from the SteamDB Github tracker (updated item definitions, images, names)
