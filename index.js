@@ -184,7 +184,7 @@ if (CONFIG.socketio.enable) {
 
 queue.process(CONFIG.logins.length, (job) => {
     return new Promise((resolve, reject) => {
-        botController.lookupFloat(job.data, job.id)
+        botController.lookupFloat(job.data)
         .then((itemData) => {
             console.log(`Received itemData for ${job.data.a}`);
 
@@ -198,10 +198,7 @@ queue.process(CONFIG.logins.length, (job) => {
             gameData.addAdditionalItemProperties(itemData.iteminfo);
             resHandler.respondFloatToUser(job.data, itemData);
 
-            // Call done while satisfying the delay
-            setTimeout(() => {
-                resolve();
-            }, delay);
+            resolve(delay);
         })
         .catch(() => {
             console.log(`Request Timeout for ${job.data.a}`);
