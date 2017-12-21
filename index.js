@@ -75,15 +75,18 @@ const lookupHandler = function (params) {
 // Setup and configure express
 let app = require('express')();
 
-const allowedRegexOrigins = CONFIG.allowed_origins.map((origin) => new RegExp(origin));
+CONFIG.allowed_regex_origins = CONFIG.allowed_regex_origins || [];
+CONFIG.allowed_origins = CONFIG.allowed_origins || [];
+const allowedRegexOrigins = CONFIG.allowed_regex_origins.map((origin) => new RegExp(origin));
 
 app.get('/', function(req, res) {
     // Allow some origins
     if (CONFIG.allowed_origins.length > 0 && req.get('origin') != undefined) {
         // check to see if its a valid domain
-        const allowed = allowedRegexOrigins.findIndex((reg) => reg.test(req.get('origin')));
+        const allowed = CONFIG.allowed_origins.indexOf(req.get('origin')) > -1 ||
+            allowedRegexOrigins.findIndex((reg) => reg.test(req.get('origin'))) > -1;
 
-        if (allowed > -1) {
+        if (allowed) {
             res.header('Access-Control-Allow-Origin', req.get('origin'));
             res.header('Access-Control-Allow-Methods', 'GET');
         }
