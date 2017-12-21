@@ -42,13 +42,14 @@ module.exports = {
         // Amount of milliseconds to wait until a request to Valve is timed out
         "request_ttl": 2000
     },
-    // Origins allowed to connect to the HTTP/HTTPS API
+    // Origins allowed to connect to the HTTP/HTTPS API (supports regex)
     "allowed_origins": [
         "http://example.com",
         "https://example.com",
         "chrome-extension://jjicbefpemnphinccgikpdaagjebbnhg",
         "http://steamcommunity.com",
-        "https://steamcommunity.com"
+        "https://steamcommunity.com",
+        "https://*.steamcommunity.com"
     ],
     // Bool to Allow Simultaneous Requests to the API from the same IP (WS and HTTP/HTTPS)
     "allow_simultaneous_requests": false,
