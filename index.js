@@ -1,4 +1,5 @@
 const fs = require('fs'),
+    winston = require('winston'),
     queue = new (require('./lib/queue'))(),
     CONFIG = require('./config'),
     utils = require('./lib/utils'),
@@ -22,9 +23,11 @@ if (CONFIG.logins.length == 0) {
     process.exit(1);
 }
 
+winston.level = CONFIG.logLevel || 'debug';
+
 // If the sentry folder doesn't exist, create it
 if (!utils.isValidDir('sentry')) {
-    console.log('Creating sentry directory');
+    winston.info('Creating sentry directory');
     fs.mkdirSync('sentry');
 }
 
@@ -64,7 +67,7 @@ const lookupHandler = function (params) {
         }
     })
     .catch((err) => {
-        console.log(`getItemData Promise rejected: ${err.message}`);
+        winston.error(`getItemData Promise rejected: ${err.message}`);
         resHandler.respondErrorToUser(params, {error: errorMsgs[6], code: 6}, 500);
     });
 };
@@ -125,12 +128,12 @@ if (CONFIG.https.enable) {
 
 if (CONFIG.http.enable) {
     http_server.listen(CONFIG.http.port);
-    console.log('Listening for HTTP on port: ' + CONFIG.http.port);
+    winston.info('Listening for HTTP on port: ' + CONFIG.http.port);
 }
 
 if (CONFIG.https.enable) {
     https_server.listen(CONFIG.https.port);
-    console.log('Listening for HTTPS on port: ' + CONFIG.https.port);
+    winston.info('Listening for HTTPS on port: ' + CONFIG.https.port);
 }
 
 
@@ -139,12 +142,12 @@ if (CONFIG.socketio.enable) {
 
     if (https_server) {
         io = require('socket.io')(https_server);
-        console.log('Listening for HTTPS websocket connections on port: ' + CONFIG.https.port);
+        winston.info('Listening for HTTPS websocket connections on port: ' + CONFIG.https.port);
     }
     else {
         // Fallback onto HTTP for socket.io
         io = require('socket.io')(http_server);
-        console.log('Listening for HTTP websocket connections on port: ' + CONFIG.http.port);
+        winston.info('Listening for HTTP websocket connections on port: ' + CONFIG.http.port);
     }
 
     if (CONFIG.socketio.origins) {
@@ -176,12 +179,12 @@ if (CONFIG.socketio.enable) {
     });
 
     botController.on('ready', () => {
-        console.log('Telling WS Users that Valve is online');
+        winston.debug('Telling WS Users that Valve is online');
         io.emit('successmessage', {'msg': 'Valve\'s servers are online!'});
     });
 
     botController.on('unready', () => {
-        console.log('Telling WS Users that Valve is offline');
+        winston.debug('Telling WS Users that Valve is offline');
         io.emit('errormessage', {error: errorMsgs[5], code: 5});
     });
 }
@@ -190,7 +193,7 @@ queue.process(CONFIG.logins.length, (job) => {
     return new Promise((resolve, reject) => {
         botController.lookupFloat(job.data)
         .then((itemData) => {
-            console.log(`Received itemData for ${job.data.a}`);
+            winston.debug(`Received itemData for ${job.data.a}`);
 
             // Save and remove the delay attribute
             let delay = itemData.delay;
@@ -205,14 +208,14 @@ queue.process(CONFIG.logins.length, (job) => {
             resolve(delay);
         })
         .catch(() => {
-            console.log(`Request Timeout for ${job.data.a}`);
+            winston.warn(`Request Timeout for ${job.data.a}`);
             reject();
         });
     });
 });
 
 queue.on('job failed', (job) => {
-    console.log(`Job Failed! S: ${job.data.s} A: ${job.data.a} D: ${job.data.d} M: ${job.data.m} IP: ${job.data.ip}`);
+    winston.warn(`Job Failed! S: ${job.data.s} A: ${job.data.a} D: ${job.data.d} M: ${job.data.m} IP: ${job.data.ip}`);
 
     resHandler.respondErrorToUser(job.data, {error: errorMsgs[4], code: 4}, 500);
 });

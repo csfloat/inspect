@@ -51,6 +51,8 @@ module.exports = {
         "https://steamcommunity.com",
         "https://*.steamcommunity.com"
     ],
+    // Logging Level (error, warn, info, verbose, debug, silly)
+    "logLevel": "debug",
     // Bool to Allow Simultaneous Requests to the API from the same IP (WS and HTTP/HTTPS)
     "allow_simultaneous_requests": false,
     // Bool to enable game file updates from the SteamDB Github tracker (updated item definitions, images, names)
@@ -59,4 +61,4 @@ module.exports = {
     "game_files_update_interval": 3600,
     // MongoDB connection info
     "database_url": "mongodb://localhost:27017/CSGOFloatdb"
-}
+};
