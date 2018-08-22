@@ -41,12 +41,9 @@ CSGOFloat is a free and open source API service that allows you to obtain the fl
 
 You can find this same info on the site by clicking the API button here: http://csgofloat.com/
 
-URL Endpoint: `api.csgofloat.com`
+**Note**: If you're using the old 1738/1739 ports, please use the new 443 HTTPS port; those ports will be deprecated in the future.
 
-HTTPS PORT: `1738`
-
-HTTP PORT: `1739`
-
+### `https://api.csgofloat.com`
 
 ### `GET /`
 
@@ -61,9 +58,9 @@ Parameters s, a, d, m can be found in the inspect link of a csgo item.
 
 ##### Examples
 
-`https://api.csgofloat.com:1738/?m=563330426657599553&a=6710760926&d=9406593057029549017`
+`https://api.csgofloat.com/?m=563330426657599553&a=6710760926&d=9406593057029549017`
 
-`https://api.csgofloat.com:1738/?s=76561198084749846&a=6777992090&d=3378412659870065794`
+`https://api.csgofloat.com/?s=76561198084749846&a=6777992090&d=3378412659870065794`
 
 
 
@@ -75,9 +72,9 @@ Parameters s, a, d, m can be found in the inspect link of a csgo item.
 
 ##### Examples
 
-`https://api.csgofloat.com:1738/?url=steam://rungame/730/76561202255233023/+csgo_econ_action_preview%20S76561198084749846A698323590D7935523998312483177`
+`https://api.csgofloat.com/?url=steam://rungame/730/76561202255233023/+csgo_econ_action_preview%20S76561198084749846A698323590D7935523998312483177`
 
-`https://api.csgofloat.com:1738/?url=steam://rungame/730/76561202255233023/+csgo_econ_action_preview%20M625254122282020305A6760346663D30614827701953021`
+`https://api.csgofloat.com/?url=steam://rungame/730/76561202255233023/+csgo_econ_action_preview%20M625254122282020305A6760346663D30614827701953021`
 
 
 ## Reply
