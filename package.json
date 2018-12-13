@@ -1,6 +1,6 @@
 {
   "name": "csgofloat",
-  "version": "2.1.4",
+  "version": "2.1.5",
   "description": "Source Code that Powers the CSGOFloat API",
   "author": "Step7750",
   "main": "index.js",
