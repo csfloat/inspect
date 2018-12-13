@@ -17,6 +17,7 @@
     "simple-vdf": "^1.1.0",
     "socket.io": "^1.7.2",
     "steam": "^1.4.0",
+    "steam-resources": "github:seishun/node-steam-resources",
     "steam-totp": "^1.4.0",
     "winston": "^2.4.0"
   },
