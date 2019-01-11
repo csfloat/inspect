@@ -12,6 +12,8 @@ module.exports = {
         "cert_path": "certs/api.example.com.crt",
         "ca_path": "certs/example.cer"
     },
+    // Whether to trust a forwarding proxy's IP (trust X-Forwarded-For)
+    "trust_proxy": false,
     // Configuration for the socket.io server
     "socketio": {
         "enable": false,

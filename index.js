@@ -9,6 +9,8 @@ const fs = require('fs'),
     DB = new (require('./lib/db'))(CONFIG.database_url),
     gameData = new (require('./lib/game_data'))(CONFIG.game_files_update_interval, CONFIG.enable_game_file_updates);
 
+winston.level = CONFIG.logLevel || 'debug';
+
 const errorMsgs = {
     1: 'Improper Parameter Structure',
     2: 'Invalid Inspect Link Structure',
@@ -18,12 +20,10 @@ const errorMsgs = {
     6: 'Something went wrong on our end, please try again'
 };
 
-if (CONFIG.logins.length == 0) {
+if (CONFIG.logins.length === 0) {
     console.log('There are no bot logins. Please add some in config.json');
     process.exit(1);
 }
-
-winston.level = CONFIG.logLevel || 'debug';
 
 // If the sentry folder doesn't exist, create it
 if (!utils.isValidDir('sentry')) {
@@ -73,7 +73,11 @@ const lookupHandler = function (params) {
 };
 
 // Setup and configure express
-let app = require('express')();
+const app = require('express')();
+
+if (CONFIG.trust_proxy === true) {
+    app.enable('trust proxy');
+}
 
 CONFIG.allowed_regex_origins = CONFIG.allowed_regex_origins || [];
 CONFIG.allowed_origins = CONFIG.allowed_origins || [];
@@ -95,8 +99,12 @@ app.get('/', function(req, res) {
     // Get and parse parameters
     let thisLink;
 
-    if ('url' in req.query) thisLink = new InspectURL(req.query.url);
-    else if ('a' in req.query && 'd' in req.query && ('s' in req.query || 'm' in req.query)) thisLink = new InspectURL(req.query);
+    if ('url' in req.query) {
+        thisLink = new InspectURL(req.query.url);
+    }
+    else if ('a' in req.query && 'd' in req.query && ('s' in req.query || 'm' in req.query)) {
+        thisLink = new InspectURL(req.query);
+    }
 
     // Make sure the params are valid
     if (!thisLink || !thisLink.getParams()) {
@@ -107,7 +115,7 @@ app.get('/', function(req, res) {
     // Look it up
     let params = thisLink.getParams();
 
-    params.ip = req.connection.remoteAddress;
+    params.ip = req.ip;
     params.type = 'http';
     params.res = res;
 
