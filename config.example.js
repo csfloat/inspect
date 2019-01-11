@@ -64,6 +64,6 @@ module.exports = {
     'enable_game_file_updates': true,
     // Amount of seconds to wait between updating game files (0 = No Interval Updates)
     'game_files_update_interval': 3600,
-    // OPTIONAL: MongoDB connection info to store results in
-    'database_url': 'mongodb://localhost:27017/CSGOFloatdb'
+    // OPTIONAL: MongoDB connection info to store results in (ex. mongodb://localhost:27017/CSGOFloatdb)
+    'database_url': ''
 };

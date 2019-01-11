@@ -9,6 +9,9 @@
     "type": "git",
     "url": "https://github.com/Step7750/CSGOFloat.git"
   },
+  "scripts": {
+    "start": "node index.js"
+  },
   "dependencies": {
     "express": "^4.14.0",
     "long": "^3.2.0",
