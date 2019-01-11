@@ -25,9 +25,7 @@ module.exports = {
             'user': 'USERNAME',
             'pass': 'PASSWORD',
             // You can either use a 2FA email/mobile token (5 letters/digits), or the shared_secret of mobile 2FA
-            'auth': '2FA_TOKEN',
-            // OPTIONAL: Bool to show its playing CS:GO (Default: true)
-            'show_in_game': true
+            'auth': '2FA_TOKEN'
         },
         {
             'user': 'USERNAME_2',
