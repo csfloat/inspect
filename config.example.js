@@ -2,12 +2,12 @@ module.exports = {
     // Configuration for the HTTP API server
     "http": {
         "enable": true,
-        "port": 1739
+        "port": 80
     },
     // Configuration for the HTTPS API server
     "https": {
         "enable": false,
-        "port": 1738,
+        "port": 443,
         "key_path": "certs/sslnopass.key",
         "cert_path": "certs/api.example.com.crt",
         "ca_path": "certs/example.cer"
