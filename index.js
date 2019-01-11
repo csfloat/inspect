@@ -37,14 +37,11 @@ for (let loginData of CONFIG.logins) {
 
 const lookupHandler = function (params) {
     // Check if the item is already in the DB
-    DB.getItemData(params)
-    .then((doc) => {
+    DB.getItemData(params).then((doc) => {
         // If we got the result, just return it
         if (doc) {
             gameData.addAdditionalItemProperties(doc);
-
             resHandler.respondFloatToUser(params, {'iteminfo': doc});
-
             return;
         }
 
@@ -65,8 +62,7 @@ const lookupHandler = function (params) {
         if (params.type === 'ws') {
             resHandler.respondInfoToUser(params, {'msg': `Your request for ${params.a} is in the queue`});
         }
-    })
-    .catch((err) => {
+    }).catch((err) => {
         winston.error(`getItemData Promise rejected: ${err.message}`);
         resHandler.respondErrorToUser(params, {error: errorMsgs[6], code: 6}, 500);
     });
