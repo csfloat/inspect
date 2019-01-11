@@ -10,14 +10,11 @@
     "url": "https://github.com/Step7750/CSGOFloat.git"
   },
   "dependencies": {
-    "csgo": "^1.5.12",
     "express": "^4.14.0",
     "long": "^3.2.0",
     "mongodb": "^2.2.21",
     "simple-vdf": "^1.1.0",
     "socket.io": "^1.7.2",
-    "steam": "^1.4.0",
-    "steam-resources": "github:seishun/node-steam-resources",
     "steam-totp": "^1.4.0",
     "winston": "^2.4.0",
     "steam-user": "^3.29.1",
