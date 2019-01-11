@@ -1,11 +1,16 @@
+const optionDefinitions = [
+    { name: 'config', alias: 'c', type: String, defaultValue: './config.js' }
+];
+
 const fs = require('fs'),
     winston = require('winston'),
+    args = require('command-line-args')(optionDefinitions),
     queue = new (require('./lib/queue'))(),
-    CONFIG = require('./config'),
     utils = require('./lib/utils'),
     InspectURL = require('./lib/inspect_url'),
     botController = new (require('./lib/bot_controller'))(),
     resHandler = require('./lib/res_handler'),
+    CONFIG = require(args.config),
     DB = new (require('./lib/db'))(CONFIG.database_url),
     gameData = new (require('./lib/game_data'))(CONFIG.game_files_update_interval, CONFIG.enable_game_file_updates);
 
