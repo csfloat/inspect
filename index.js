@@ -17,6 +17,10 @@ const fs = require('fs'),
     DB = new (require('./lib/db'))(CONFIG.database_url),
     gameData = new (require('./lib/game_data'))(CONFIG.game_files_update_interval, CONFIG.enable_game_file_updates);
 
+if (CONFIG.max_simultaneous_requests === undefined) {
+    CONFIG.max_simultaneous_requests = 1;
+}
+
 winston.level = CONFIG.logLevel || 'debug';
 
 const errorMsgs = {
@@ -63,8 +67,8 @@ const lookupHandler = function (params) {
             return;
         }
 
-        // If the flag is set, check if the user already has a request in the queue
-        if (!CONFIG.allow_simultaneous_requests && queue.isUserInQueue(params.ip)) {
+        if (CONFIG.max_simultaneous_requests > 0 &&
+            queue.getUserQueuedAmt(params.ip) >= CONFIG.max_simultaneous_requests) {
             resHandler.respondErrorToUser(params, {error: errorMsgs[3], code: 3}, 400);
             return;
         }
