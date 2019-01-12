@@ -44,7 +44,7 @@ if (!utils.isValidDir('sentry')) {
 }
 
 if (args.steam_data) {
-      CONFIG.bot_settings.steam_user.dataDirectory = args.steam_data;
+    CONFIG.bot_settings.steam_user.dataDirectory = args.steam_data;
 }
 
 for (let loginData of CONFIG.logins) {
