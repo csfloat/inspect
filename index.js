@@ -37,12 +37,6 @@ if (CONFIG.logins.length === 0) {
     process.exit(1);
 }
 
-// If the sentry folder doesn't exist, create it
-if (!utils.isValidDir('sentry')) {
-    winston.info('Creating sentry directory');
-    fs.mkdirSync('sentry');
-}
-
 if (args.steam_data) {
     CONFIG.bot_settings.steam_user.dataDirectory = args.steam_data;
 }
