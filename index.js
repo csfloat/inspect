@@ -1,34 +1,43 @@
+global._mckay_statistics_opt_out = true; // Opt out of node-steam-user stats
+
+const optionDefinitions = [
+    { name: 'config', alias: 'c', type: String, defaultValue: './config.js' }, // Config file location
+    { name: 'steam_data', alias: 's', type: String } // Steam data directory
+];
+
 const fs = require('fs'),
     winston = require('winston'),
+    args = require('command-line-args')(optionDefinitions),
     queue = new (require('./lib/queue'))(),
-    CONFIG = require('./config'),
-    utils = require('./lib/utils'),
     InspectURL = require('./lib/inspect_url'),
     botController = new (require('./lib/bot_controller'))(),
     resHandler = require('./lib/res_handler'),
+    CONFIG = require(args.config),
     DB = new (require('./lib/db'))(CONFIG.database_url),
     gameData = new (require('./lib/game_data'))(CONFIG.game_files_update_interval, CONFIG.enable_game_file_updates);
+
+if (CONFIG.max_simultaneous_requests === undefined) {
+    CONFIG.max_simultaneous_requests = 1;
+}
+
+winston.level = CONFIG.logLevel || 'debug';
 
 const errorMsgs = {
     1: 'Improper Parameter Structure',
     2: 'Invalid Inspect Link Structure',
-    3: 'You may only have one pending request at a time',
+    3: `You may only have ${CONFIG.max_simultaneous_requests} pending request(s) at a time`,
     4: 'Valve\'s servers didn\'t reply in time',
     5: 'Valve\'s servers appear to be offline, please try again later',
     6: 'Something went wrong on our end, please try again'
 };
 
-if (CONFIG.logins.length == 0) {
+if (CONFIG.logins.length === 0) {
     console.log('There are no bot logins. Please add some in config.json');
     process.exit(1);
 }
 
-winston.level = CONFIG.logLevel || 'debug';
-
-// If the sentry folder doesn't exist, create it
-if (!utils.isValidDir('sentry')) {
-    winston.info('Creating sentry directory');
-    fs.mkdirSync('sentry');
+if (args.steam_data) {
+    CONFIG.bot_settings.steam_user.dataDirectory = args.steam_data;
 }
 
 for (let loginData of CONFIG.logins) {
@@ -37,14 +46,11 @@ for (let loginData of CONFIG.logins) {
 
 const lookupHandler = function (params) {
     // Check if the item is already in the DB
-    DB.getItemData(params)
-    .then((doc) => {
+    DB.getItemData(params).then((doc) => {
         // If we got the result, just return it
         if (doc) {
             gameData.addAdditionalItemProperties(doc);
-
             resHandler.respondFloatToUser(params, {'iteminfo': doc});
-
             return;
         }
 
@@ -54,8 +60,8 @@ const lookupHandler = function (params) {
             return;
         }
 
-        // If the flag is set, check if the user already has a request in the queue
-        if (!CONFIG.allow_simultaneous_requests && queue.isUserInQueue(params.ip)) {
+        if (CONFIG.max_simultaneous_requests > 0 &&
+            queue.getUserQueuedAmt(params.ip) >= CONFIG.max_simultaneous_requests) {
             resHandler.respondErrorToUser(params, {error: errorMsgs[3], code: 3}, 400);
             return;
         }
@@ -65,15 +71,18 @@ const lookupHandler = function (params) {
         if (params.type === 'ws') {
             resHandler.respondInfoToUser(params, {'msg': `Your request for ${params.a} is in the queue`});
         }
-    })
-    .catch((err) => {
+    }).catch((err) => {
         winston.error(`getItemData Promise rejected: ${err.message}`);
         resHandler.respondErrorToUser(params, {error: errorMsgs[6], code: 6}, 500);
     });
 };
 
 // Setup and configure express
-let app = require('express')();
+const app = require('express')();
+
+if (CONFIG.trust_proxy === true) {
+    app.enable('trust proxy');
+}
 
 CONFIG.allowed_regex_origins = CONFIG.allowed_regex_origins || [];
 CONFIG.allowed_origins = CONFIG.allowed_origins || [];
@@ -95,8 +104,12 @@ app.get('/', function(req, res) {
     // Get and parse parameters
     let thisLink;
 
-    if ('url' in req.query) thisLink = new InspectURL(req.query.url);
-    else if ('a' in req.query && 'd' in req.query && ('s' in req.query || 'm' in req.query)) thisLink = new InspectURL(req.query);
+    if ('url' in req.query) {
+        thisLink = new InspectURL(req.query.url);
+    }
+    else if ('a' in req.query && 'd' in req.query && ('s' in req.query || 'm' in req.query)) {
+        thisLink = new InspectURL(req.query);
+    }
 
     // Make sure the params are valid
     if (!thisLink || !thisLink.getParams()) {
@@ -107,7 +120,7 @@ app.get('/', function(req, res) {
     // Look it up
     let params = thisLink.getParams();
 
-    params.ip = req.connection.remoteAddress;
+    params.ip = req.ip;
     params.type = 'http';
     params.res = res;
 

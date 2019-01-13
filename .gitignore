@@ -1,5 +1,6 @@
 node_modules
 config.js
+/config
 sentry
 game_files
 .DS_Store
