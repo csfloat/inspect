@@ -25,7 +25,7 @@ winston.level = CONFIG.logLevel || 'debug';
 const errorMsgs = {
     1: 'Improper Parameter Structure',
     2: 'Invalid Inspect Link Structure',
-    3: 'You may only have one pending request at a time',
+    3: `You may only have ${CONFIG.max_simultaneous_requests} pending request(s) at a time`,
     4: 'Valve\'s servers didn\'t reply in time',
     5: 'Valve\'s servers appear to be offline, please try again later',
     6: 'Something went wrong on our end, please try again'
