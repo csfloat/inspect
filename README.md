@@ -33,15 +33,13 @@ CSGOFloat is a free and open source API service that allows you to obtain the fl
 	* [Manual](https://github.com/Step7750/CSGOFloat#manual)
 	* [Steps](https://github.com/Step7750/CSGOFloat#steps)
 	* [How to First Login a Bot](https://github.com/Step7750/CSGOFloat#how-to-first-login-a-bot)
+	* [Breaking Changes](https://github.com/Step7750/CSGOFloat#breaking-changes)
+	* [Args](https://github.com/Step7750/CSGOFloat#args)
 
 
 # API
 
 **If you want to heavily use the public API, please host this repo yourself**
-
-You can find this same info on the site by clicking the API button here: http://csgofloat.com/
-
-**Note**: If you're using the old 1738/1739 ports, please use the new 443 HTTPS port; those ports will be deprecated in the future.
 
 ### `https://api.csgofloat.com`
 
@@ -79,7 +77,7 @@ Parameters s, a, d, m can be found in the inspect link of a csgo item.
 
 ## Reply
 
-The reply of this API is based upon [this CSGO protobuf](https://github.com/SteamRE/SteamKit/blob/master/Resources/Protobufs/csgo/cstrike15_gcmessages.proto#L674). I recommend looking at the Github in order to understand how some of these parameters work.
+The reply of this API is based upon [this CSGO protobuf](https://github.com/SteamDatabase/GameTracking-CSGO/blob/a00b71ec84b24e0773c5fbd595eb91e17fa57f8f/Protobufs/cstrike15_gcmessages.proto#L729).
 
 | Attribute     | Data Type     | Description   |
 |:-------------:|:-------------:|:--------------|
@@ -105,7 +103,7 @@ The reply of this API is based upon [this CSGO protobuf](https://github.com/Stea
 | quality_name       | string | Quality name (Souvenir, Stattrak, etc...) |
 | rarity_name 	     | string | Rarity name (Covert, Mil-Spec, etc...) |
 | wear_name  	     | string | Wear name (Factory New, Minimal Wear, etc...) |
-| full_item_name     | string | Full Item Name (ex. SSG 08 \| Blue Spruce (Minimal Wear)) |
+| full_item_name     | string | Full Item Name (ex. SSG 08 Blue Spruce (Minimal Wear)) |
 
 
 ```json
@@ -157,7 +155,7 @@ The API might be unstable at times, so it is important that you handle the error
 |:-------------:|:-------------|
 | 1             | Improper Parameter Structure |
 | 2             | Invalid Inspect Link Structure |
-| 3             | You may only have one pending request at a time |
+| 3             | You may only have X pending request(s) at a time |
 | 4             | Valve's servers didn't reply in time |
 | 5             | Valve's servers appear to be offline, please try again later! |
 
@@ -165,7 +163,7 @@ The API might be unstable at times, so it is important that you handle the error
 
 ```json
 {
-	"error": "Valve's servers didn't reply",
+	"error": "Valve's servers didn't reply in time",
 	"code": 4
 }
 ```
@@ -174,6 +172,8 @@ The API might be unstable at times, so it is important that you handle the error
 # How to Install
 
 In order to retrieve float values for weapons in this way, you must have Steam account(s) with a copy of CS:GO. Each account can request 1 float per second. CSGOFloat allows you to have as many bots as you'd like by inputting the login info into config.js.
+
+Each instance of CSGOFloat can operate around 300 accounts. It is recommended to either configure a MongoDB server or setup another cache such as Varnish or Nginx in front of your server. 
 
 ## Docker
 
@@ -205,6 +205,8 @@ Clone the repo (or `npm install csgofloat`) and install the Node.js dependencies
 ## How to First Login a Bot
 
 **Note**: If the bot has never logged into the steam client before and doesn't have Mobile 2FA enabled (fresh account), you can just input the username and password and it should successfully log in without email 2FA
+
+If your bot doesn't own CS:GO, CSGOFloat will automatically try to obtain a license for it during startup.
 
 * Using Email 2FA
 	* Only fill in the `user` and `pass` fields for the bot (make sure the `auth` field is empty or removed)
