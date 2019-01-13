@@ -96,7 +96,6 @@ The reply of this API is based upon [this CSGO protobuf](https://github.com/Stea
 | imageurl        | string | Optional: Image of the item |
 | min        | float | Minimum wear of the skin |
 | max        | float | Maximum wear of the skin |
-| itemid_int        | uint32 | ID of the item |
 | item_name        | uint32 | Optional: Name of the skin |
 | weapon_type        | string | Weapon type name |
 | origin_name        | string | Origin name (Trade-Up, Dropped, etc...) |
@@ -125,7 +124,6 @@ The reply of this API is based upon [this CSGO protobuf](https://github.com/Stea
 		"questid": null,
 		"dropreason": null,
 		"musicindex": null,
-		"itemid_int": 0,
 		"s": "0",
 		"a": "13874827217",
 		"d": "4649025583329100061",
