@@ -10,10 +10,9 @@
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/Step7750/CSGOFloat/LICENSE)
 [![Website](https://img.shields.io/website-up-down-green-red/https/csgofloat.com.svg)](https://csgofloat.com)
 [![Chrome Web Store](https://img.shields.io/chrome-web-store/d/jjicbefpemnphinccgikpdaagjebbnhg.svg)](https://chrome.google.com/webstore/detail/csgofloat-market-checker/jjicbefpemnphinccgikpdaagjebbnhg)
+[![Docker](https://img.shields.io/docker/pulls/step7750/csgofloat.svg)](https://hub.docker.com/r/step7750/csgofloat)
 
 CSGOFloat is a free and open source API service that allows you to obtain the float and paint seed of any CSGO item using its inspect link.
-
-### `npm install csgofloat`
 
 ### Repo Links
 
@@ -29,8 +28,9 @@ CSGOFloat is a free and open source API service that allows you to obtain the fl
 		* [Examples](https://github.com/Step7750/CSGOFloat#examples-1)
 	* [Reply](https://github.com/Step7750/CSGOFloat#reply)
 	* [Errors](https://github.com/Step7750/CSGOFloat#errors)
-  * [How to Run](https://github.com/Step7750/CSGOFloat#how-to-run)
-  	* [Dependencies](https://github.com/Step7750/CSGOFloat#dependencies)
+  * [How to Install](https://github.com/Step7750/CSGOFloat#how-to-install)
+  	* [Docker](https://github.com/Step7750/CSGOFloat#docker)
+	* [Manual](https://github.com/Step7750/CSGOFloat#manual)
 	* [Steps](https://github.com/Step7750/CSGOFloat#steps)
 	* [How to First Login a Bot](https://github.com/Step7750/CSGOFloat#how-to-first-login-a-bot)
 
@@ -101,48 +101,48 @@ The reply of this API is based upon [this CSGO protobuf](https://github.com/Stea
 | itemid_int        | uint32 | ID of the item |
 | item_name        | uint32 | Optional: Name of the skin |
 | weapon_type        | string | Weapon type name |
+| origin_name        | string | Origin name (Trade-Up, Dropped, etc...) |
+| quality_name       | string | Quality name (Souvenir, Stattrak, etc...) |
+| rarity_name 	     | string | Rarity name (Covert, Mil-Spec, etc...) |
+| wear_name  	     | string | Wear name (Factory New, Minimal Wear, etc...) |
+| full_item_name     | string | Full Item Name (ex. SSG 08 | Blue Spruce (Minimal Wear)) |
 
 
 ```json
 {
 	"iteminfo": {
 		"accountid": null,
-		"itemid": {
-			"low": -1766118817,
-			"high": 1,
-			"unsigned": true
-		},
+		"itemid": "13874827217",
 		"defindex": 7,
 		"paintindex": 282,
 		"rarity": 5,
 		"quality": 4,
-		"paintwear": 1043366112,
-		"paintseed": 61,
+		"paintseed": 361,
 		"killeaterscoretype": null,
 		"killeatervalue": null,
 		"customname": null,
-		"stickers": [{
-			"slot": 2,
-			"sticker_id": 180,
-			"wear": null,
-			"scale": null,
-			"rotation": null
-		}],
-		"inventory": 3221225482,
-		"origin": 4,
+		"stickers": [],
+		"inventory": 11,
+		"origin": 8,
 		"questid": null,
 		"dropreason": null,
-		"floatvalue": 0.17236661911010742,
+		"musicindex": null,
+		"itemid_int": 0,
+		"s": "0",
+		"a": "13874827217",
+		"d": "4649025583329100061",
+		"m": "2608048286785948758",
+		"floatvalue": 0.22740158438682556,
 		"imageurl": "http://media.steampowered.com/apps/730/icons/econ/default_generated/weapon_ak47_cu_ak47_cobra_light_large.7494bfdf4855fd4e6a2dbd983ed0a243c80ef830.png",
 		"min": 0.1,
 		"max": 0.7,
-		"itemid_int": 2528848479,
+		"weapon_type": "AK-47",
 		"item_name": "Redline",
-		"s": "0",
-		"a": "6823815775",
-		"d": "16727143683740967735",
-		"m": "638766174011039879",
-		"weapon_type": "AK-47"
+		"rarity_name": "Classified",
+		"quality_name": "Unique",
+		"origin_name": "Found in Crate",
+		"wear_name": "Field-Tested",
+		"full_item_name": "AK-47 | Redline (Field-Tested)"
 	}
 }
 ```
@@ -171,36 +171,40 @@ The API might be unstable at times, so it is important that you handle the error
 ```
 
 
-
-# How to Run
+# How to Install
 
 In order to retrieve float values for weapons in this way, you must have Steam account(s) with a copy of CS:GO. Each account can request 1 float per second. CSGOFloat allows you to have as many bots as you'd like by inputting the login info into config.js.
 
-##### Dependencies:
+## Docker
 
-* node-csgo (v1.4 or higher)
-* socket.io
-* vdf
-* long
-* express
-* mongodb
+Pull the [image](https://hub.docker.com/r/step7750/csgofloat) from docker and mount the config directory
 
-You can install the Node.js dependencies using `npm install` or `yarn install`
+```
+docker pull step7750/csgofloat:latest
+docker run -d --name csgofloat -v /host/config:/config -p 80:80 -p 443:443 step7750/csgofloat:latest
+```
 
-##### Steps:
+The first time you start the docker container, it'll copy the `config.js` file to the config directory and stop. You'll need to edit this file and include your bots login information and then start the docker again. See the section [How to First Login a Bot](https://github.com/Step7750/CSGOFloat#how-to-first-login-a-bot) for further info.
+
+## Manual
+
+Requires Node.js v8+!
+
+Clone the repo (or `npm install csgofloat`) and install the Node.js dependencies using `npm install` or `yarn install` in the root directory.
+
+#### Steps:
 
 1. Copy `config.example.js` to `config.js`
 2. Add your bot(s) login information to `config.js`
 3. Edit `config.js` with your desired settings
-4. Ensure MongoDB is running
+4. Ensure MongoDB is running if you've set it's database url
 5. Run `node index.js` in the main directory
-6. Navigate to the IP that the server is hosted on and query the API using the docs above!
+6. [How to First Login a Bot](https://github.com/Step7750/CSGOFloat#how-to-first-login-a-bot)
+7. Navigate to the IP that the server is hosted on and query the API using the docs above!
 
-**If you have a config from v1.0, please update it to match the new parameters in v2.0+!**
+## How to First Login a Bot
 
-**v2.1.0 removes the need for Redis**
-
-#### How to First Login a Bot
+**Note**: If the bot has never logged into the steam client before and doesn't have Mobile 2FA enabled (fresh account), you can just input the username and password and it should successfully log in without email 2FA
 
 * Using Email 2FA
 	* Only fill in the `user` and `pass` fields for the bot (make sure the `auth` field is empty or removed)
@@ -208,11 +212,28 @@ You can install the Node.js dependencies using `npm install` or `yarn install`
 	* It will tell you that an auth code was sent to your email
 	* Input the code from your email into the `auth` field for the bot
 	* Restart CSGOFloat
-	* It should successfully login and create a `{username}.sentry` file in the `sentry` folder in the main directory
-	* The `auth` field can now be removed in your login file for further logins
+	* It should successfully login and create a sentry file in the current [node-steam-user config directory](https://github.com/DoctorMcKay/node-steam-user#datadirectory)
+	* The `auth` field can now be optionally removed in your login file for further logins
 * Using Mobile 2FA
 	* Fill in the `user` and `pass` fields for the bot
 	* Fill in the `auth` field with the `shared_secret` for the bot
 	* Start up CSGOFloat
-	* It should successfully login and create a `{username}.sentry` file in the `sentry` folder in the main directory
+	* It should successfully login and create a sentry file in the current [node-steam-user config directory](https://github.com/DoctorMcKay/node-steam-user#datadirectory)
 	* You'll need to keep the `auth` field filled in for future logins
+
+## Breaking Changes
+
+### v2.0 -> v3.0
+
+* Since we now use node-steam-user instead of node-steam, the sentry folder location now [depends on your system](https://github.com/DoctorMcKay/node-steam-user#datadirectory). If you'd like to migrate sentry files from v2.0 rather than having to reauthenticate email 2FA accounts, you'll need to copy your sentry files and rename them to match node-steam-user's format
+* `allow_simultaneous_requests` has now been replaced by `max_simultaneous_requests`. You can set `max_simultaneous_requests` to `-1` to allow an infinite amount of simultaneous requests by the same IP.
+
+## Args
+
+### `-c`/`--config` (default `./config.js`)
+
+CSGOFloat config file location
+
+### `-s`/`--steam_data` (default [node-steam-user config directory](https://github.com/DoctorMcKay/node-steam-user#datadirectory))
+
+node-steam-user config directory
