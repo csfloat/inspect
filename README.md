@@ -105,7 +105,7 @@ The reply of this API is based upon [this CSGO protobuf](https://github.com/Stea
 | quality_name       | string | Quality name (Souvenir, Stattrak, etc...) |
 | rarity_name 	     | string | Rarity name (Covert, Mil-Spec, etc...) |
 | wear_name  	     | string | Wear name (Factory New, Minimal Wear, etc...) |
-| full_item_name     | string | Full Item Name (ex. SSG 08 | Blue Spruce (Minimal Wear)) |
+| full_item_name     | string | Full Item Name (ex. SSG 08 \| Blue Spruce (Minimal Wear)) |
 
 
 ```json
