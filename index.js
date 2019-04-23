@@ -8,6 +8,7 @@ const optionDefinitions = [
 const fs = require('fs'),
     winston = require('winston'),
     args = require('command-line-args')(optionDefinitions),
+    utils = require('./lib/utils'),
     queue = new (require('./lib/queue'))(),
     InspectURL = require('./lib/inspect_url'),
     botController = new (require('./lib/bot_controller'))(),
@@ -44,12 +45,20 @@ for (let loginData of CONFIG.logins) {
     botController.addBot(loginData, CONFIG.bot_settings);
 }
 
+DB.connect();
+
 const lookupHandler = function (params) {
     // Check if the item is already in the DB
     DB.getItemData(params).then((doc) => {
         // If we got the result, just return it
         if (doc) {
             gameData.addAdditionalItemProperties(doc);
+
+            if (params.minimal) {
+                doc = utils.filterKeys(['defindex', 'paintindex', 'paintseed', 'origin', 'stickers', 'floatvalue', 'min', 'max', 'origin_name'], doc);
+                doc.stickers = doc.stickers.map((s) => utils.filterKeys(['stickerId', 'slot', 'wear'], s));
+            }
+
             resHandler.respondFloatToUser(params, {'iteminfo': doc});
             return;
         }
@@ -123,6 +132,7 @@ app.get('/', function(req, res) {
     params.ip = req.ip;
     params.type = 'http';
     params.res = res;
+    params.minimal = req.query.minimal || false;
 
     lookupHandler(params);
 });
