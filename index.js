@@ -55,7 +55,9 @@ const lookupHandler = function (params) {
             gameData.addAdditionalItemProperties(doc);
 
             if (params.minimal) {
-                doc = utils.filterKeys(['defindex', 'paintindex', 'paintseed', 'origin', 'stickers', 'floatvalue', 'min', 'max', 'origin_name'], doc);
+                doc = utils.filterKeys(
+                    ['defindex', 'paintindex', 'paintseed', 'origin',
+                        'stickers', 'floatvalue', 'min', 'max', 'origin_name'], doc);
                 doc.stickers = doc.stickers.map((s) => utils.filterKeys(['stickerId', 'slot', 'wear'], s));
             }
 
@@ -229,6 +231,14 @@ queue.process(CONFIG.logins.length, (job) => {
             DB.insertItemData(itemData.iteminfo);
 
             gameData.addAdditionalItemProperties(itemData.iteminfo);
+
+            if (job.data.minimal) {
+                itemData.iteminfo = utils.filterKeys(
+                    ['defindex', 'paintindex', 'paintseed', 'origin',
+                        'stickers', 'floatvalue', 'min', 'max', 'origin_name'], itemData.iteminfo);
+                itemData.iteminfo.stickers = itemData.iteminfo.stickers
+                    .map((s) => utils.filterKeys(['stickerId', 'slot', 'wear'], s));
+            }
             resHandler.respondFloatToUser(job.data, itemData);
 
             resolve(delay);
