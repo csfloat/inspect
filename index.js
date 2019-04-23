@@ -58,8 +58,9 @@ const lookupHandler = function (params) {
                 doc = utils.filterKeys(
                     ['defindex', 'paintindex', 'paintseed', 'origin',
                         'stickers', 'floatvalue', 'min', 'max', 'origin_name'], doc);
-                doc.stickers = doc.stickers.map((s) => utils.filterKeys(['stickerId', 'slot', 'wear'], s));
             }
+
+            doc = utils.removeNullValues(doc);
 
             resHandler.respondFloatToUser(params, {'iteminfo': doc});
             return;
@@ -134,7 +135,7 @@ app.get('/', function(req, res) {
     params.ip = req.ip;
     params.type = 'http';
     params.res = res;
-    params.minimal = req.query.minimal || false;
+    params.minimal = req.query.minimal == 'true' || false;
 
     lookupHandler(params);
 });
@@ -236,9 +237,11 @@ queue.process(CONFIG.logins.length, (job) => {
                 itemData.iteminfo = utils.filterKeys(
                     ['defindex', 'paintindex', 'paintseed', 'origin',
                         'stickers', 'floatvalue', 'min', 'max', 'origin_name'], itemData.iteminfo);
-                itemData.iteminfo.stickers = itemData.iteminfo.stickers
-                    .map((s) => utils.filterKeys(['stickerId', 'slot', 'wear'], s));
             }
+
+            itemData.iteminfo = utils.removeNullValues(itemData.iteminfo);
+            itemData.iteminfo.stickers = itemData.iteminfo.stickers.map((s) => utils.removeNullValues(s));
+
             resHandler.respondFloatToUser(job.data, itemData);
 
             resolve(delay);
