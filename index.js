@@ -8,6 +8,7 @@ const optionDefinitions = [
 const fs = require('fs'),
     winston = require('winston'),
     args = require('command-line-args')(optionDefinitions),
+    utils = require('./lib/utils'),
     queue = new (require('./lib/queue'))(),
     InspectURL = require('./lib/inspect_url'),
     botController = new (require('./lib/bot_controller'))(),
@@ -44,12 +45,23 @@ for (let loginData of CONFIG.logins) {
     botController.addBot(loginData, CONFIG.bot_settings);
 }
 
+DB.connect();
+
 const lookupHandler = function (params) {
     // Check if the item is already in the DB
     DB.getItemData(params).then((doc) => {
         // If we got the result, just return it
         if (doc) {
             gameData.addAdditionalItemProperties(doc);
+
+            if (params.minimal) {
+                doc = utils.filterKeys(
+                    ['defindex', 'paintindex', 'paintseed', 'origin',
+                        'stickers', 'floatvalue', 'min', 'max', 'origin_name'], doc);
+            }
+
+            doc = utils.removeNullValues(doc);
+
             resHandler.respondFloatToUser(params, {'iteminfo': doc});
             return;
         }
@@ -123,6 +135,7 @@ app.get('/', function(req, res) {
     params.ip = req.ip;
     params.type = 'http';
     params.res = res;
+    params.minimal = req.query.minimal == 'true' || false;
 
     lookupHandler(params);
 });
@@ -219,6 +232,16 @@ queue.process(CONFIG.logins.length, (job) => {
             DB.insertItemData(itemData.iteminfo);
 
             gameData.addAdditionalItemProperties(itemData.iteminfo);
+
+            if (job.data.minimal) {
+                itemData.iteminfo = utils.filterKeys(
+                    ['defindex', 'paintindex', 'paintseed', 'origin',
+                        'stickers', 'floatvalue', 'min', 'max', 'origin_name'], itemData.iteminfo);
+            }
+
+            itemData.iteminfo = utils.removeNullValues(itemData.iteminfo);
+            itemData.iteminfo.stickers = itemData.iteminfo.stickers.map((s) => utils.removeNullValues(s));
+
             resHandler.respondFloatToUser(job.data, itemData);
 
             resolve(delay);
