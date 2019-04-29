@@ -90,7 +90,8 @@ const lookupHandler = function (params) {
 };
 
 // Setup and configure express
-const app = require('express')();
+const express = require('express');
+const app = express();
 
 if (CONFIG.trust_proxy === true) {
     app.enable('trust proxy');
@@ -99,6 +100,21 @@ if (CONFIG.trust_proxy === true) {
 CONFIG.allowed_regex_origins = CONFIG.allowed_regex_origins || [];
 CONFIG.allowed_origins = CONFIG.allowed_origins || [];
 const allowedRegexOrigins = CONFIG.allowed_regex_origins.map((origin) => new RegExp(origin));
+
+app.use(express.json());
+
+app.post('/', function(req, res) {
+    for (const link of req.body.links) {
+        const inspectLink = new InspectURL(decodeURIComponent(link));
+        const params = inspectLink.getParams();
+        params.ip = req.ip;
+        params.type = 'http';
+
+        lookupHandler(params);
+    }
+
+    res.json({msg: 'Your requests are in the queue'});
+});
 
 app.get('/', function(req, res) {
     // Allow some origins
@@ -134,7 +150,13 @@ app.get('/', function(req, res) {
 
     params.ip = req.ip;
     params.type = 'http';
-    params.res = res;
+
+    if (req.query.queue == 'true') {
+        res.json({msg: 'Your request is in the queue'});
+    } else {
+        params.res = res;
+    }
+
     params.minimal = req.query.minimal == 'true' || false;
 
     lookupHandler(params);
@@ -218,7 +240,7 @@ if (CONFIG.socketio.enable) {
     });
 }
 
-queue.process(CONFIG.logins.length, (job) => {
+queue.process(CONFIG.logins.length-20, (job) => {
     return new Promise((resolve, reject) => {
         botController.lookupFloat(job.data)
         .then((itemData) => {
@@ -252,6 +274,12 @@ queue.process(CONFIG.logins.length, (job) => {
         });
     });
 });
+
+
+setInterval(() => {
+    console.log(`Queue size: ${queue.queue.length}`);
+}, 10000);
+
 
 queue.on('job failed', (job) => {
     winston.warn(`Job Failed! S: ${job.data.s} A: ${job.data.a} D: ${job.data.d} M: ${job.data.m} IP: ${job.data.ip}`);
