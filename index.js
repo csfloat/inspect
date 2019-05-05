@@ -57,7 +57,7 @@ const lookupHandler = function (params) {
             if (params.minimal) {
                 doc = utils.filterKeys(
                     ['defindex', 'paintindex', 'paintseed', 'origin',
-                        'stickers', 'floatvalue', 'min', 'max', 'origin_name'], doc);
+                        'stickers', 'floatvalue', 'min', 'max', 'origin_name', 'low_rank', 'high_rank'], doc);
             }
 
             doc = utils.removeNullValues(doc);
@@ -220,8 +220,7 @@ if (CONFIG.socketio.enable) {
 
 queue.process(CONFIG.logins.length, (job) => {
     return new Promise((resolve, reject) => {
-        botController.lookupFloat(job.data)
-        .then((itemData) => {
+        botController.lookupFloat(job.data).then(async (itemData) => {
             winston.debug(`Received itemData for ${job.data.a}`);
 
             // Save and remove the delay attribute
@@ -231,12 +230,14 @@ queue.process(CONFIG.logins.length, (job) => {
             // add the item info to the DB
             DB.insertItemData(itemData.iteminfo);
 
+            // Get rank, annotate with game files
+            itemData.iteminfo = Object.assign(itemData.iteminfo, await DB.getItemRank(itemData.iteminfo.a));
             gameData.addAdditionalItemProperties(itemData.iteminfo);
 
             if (job.data.minimal) {
                 itemData.iteminfo = utils.filterKeys(
                     ['defindex', 'paintindex', 'paintseed', 'origin',
-                        'stickers', 'floatvalue', 'min', 'max', 'origin_name'], itemData.iteminfo);
+                        'stickers', 'floatvalue', 'min', 'max', 'origin_name', 'low_rank', 'high_rank'], itemData.iteminfo);
             }
 
             itemData.iteminfo = utils.removeNullValues(itemData.iteminfo);
@@ -245,8 +246,7 @@ queue.process(CONFIG.logins.length, (job) => {
             resHandler.respondFloatToUser(job.data, itemData);
 
             resolve(delay);
-        })
-        .catch(() => {
+        }).catch(() => {
             winston.warn(`Request Timeout for ${job.data.a}`);
             reject();
         });
