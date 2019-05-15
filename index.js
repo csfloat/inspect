@@ -228,7 +228,7 @@ queue.process(CONFIG.logins.length, (job) => {
             delete itemData.delay;
 
             // add the item info to the DB
-            DB.insertItemData(itemData.iteminfo);
+            await DB.insertItemData(itemData.iteminfo);
 
             // Get rank, annotate with game files
             itemData.iteminfo = Object.assign(itemData.iteminfo, await DB.getItemRank(itemData.iteminfo.a));
