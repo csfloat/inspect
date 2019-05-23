@@ -1021,11 +1021,7 @@ lodash.camelcase@^4.3.0:
   resolved "https://registry.yarnpkg.com/lodash.camelcase/-/lodash.camelcase-4.3.0.tgz#b28aa6288a2b9fc651035c7711f65ab6190331a6"
   integrity sha1-soqmKIorn8ZRA1x3EfZathkDMaY=
 
-lodash@^4.0.0, lodash@^4.3.0:
-  version "4.17.4"
-  resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.4.tgz#78203a4d1c328ae1d86dca6460e369b57f4055ae"
-
-lodash@^4.17.10:
+lodash@^4.0.0, lodash@^4.17.10, lodash@^4.3.0:
   version "4.17.11"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.11.tgz#b39ea6229ef607ecd89e2c8df12536891cac9b8d"
   integrity sha512-cQKh8igo5QUhZ7lg38DYWAxMvjSAKG0A8wGSVimP07SIUEK2UO+arSRKbRZWtelMtN5V0Hkwh5ryOto/SshYIg==
@@ -1564,10 +1560,32 @@ steam-totp@^1.4.1, steam-totp@^1.5.0:
   dependencies:
     "@doctormckay/stats-reporter" "^1.0.0"
 
-steam-user@^3.23.2, steam-user@^3.29.1:
+steam-user@^3.23.2:
   version "3.29.1"
   resolved "https://registry.yarnpkg.com/steam-user/-/steam-user-3.29.1.tgz#24141391244710387c0273a9eef4611d349f8e12"
   integrity sha512-MYhfFRprMqCTtoLdZnoWaOSGGuYsWbzYyTm5FoZ1MLjcZ4bRDezARoylT9xFXZdEzvjopcDqX0vCuNd7317lMQ==
+  dependencies:
+    "@doctormckay/proxy-agent" "^1.0.0"
+    "@doctormckay/stats-reporter" "^1.0.3"
+    "@doctormckay/steam-crypto" "^1.2.0"
+    adm-zip "^0.4.7"
+    appdirectory "^0.1.0"
+    async "^2.5.0"
+    binarykvparser "^2.2.0"
+    buffer-crc32 "^0.2.13"
+    bytebuffer "^5.0.0"
+    file-manager "^1.0.1"
+    lzma "^2.3.2"
+    protobufjs "^5.0.2"
+    steam-client "^2.5.8"
+    steam-totp "^1.4.1"
+    steamid "^1.1.0"
+    vdf "^0.0.2"
+
+steam-user@^3.29.3:
+  version "3.29.3"
+  resolved "https://registry.yarnpkg.com/steam-user/-/steam-user-3.29.3.tgz#0a40e3a3c247341588b7476b0b3a30b1d3ece0d1"
+  integrity sha512-qvstGZClY5wWiAfoTJNc49t8ThgrcJn7oL8bUEMvJZKKR3UQFRhowonUrBhMeB0pY8Q2ia1u3FD4IMoX7WCjIg==
   dependencies:
     "@doctormckay/proxy-agent" "^1.0.0"
     "@doctormckay/stats-reporter" "^1.0.3"
