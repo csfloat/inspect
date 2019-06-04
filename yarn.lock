@@ -88,8 +88,9 @@ appdirectory@^0.1.0:
   integrity sha1-62yBYyDnsqsW9e2ZfyjYIF31Y3U=
 
 argparse@^1.0.7:
-  version "1.0.9"
-  resolved "https://registry.yarnpkg.com/argparse/-/argparse-1.0.9.tgz#73d83bc263f86e97f8cc4f6bae1b0e90a7d22c86"
+  version "1.0.10"
+  resolved "https://registry.yarnpkg.com/argparse/-/argparse-1.0.10.tgz#bcd6791ea5ae09725e17e5ad988134cd40b3d911"
+  integrity sha512-o5Roy6tNG4SL/FOkCAN6RzjiakZS25RLYFrcMttJqbdd8BWrnA+fGz57iN5Pb06pvBGvl5gQ0B48dJlslXvoTg==
   dependencies:
     sprintf-js "~1.0.2"
 
@@ -621,9 +622,10 @@ espree@^3.4.0:
     acorn "4.0.4"
     acorn-jsx "^3.0.0"
 
-esprima@^3.1.1:
-  version "3.1.3"
-  resolved "https://registry.yarnpkg.com/esprima/-/esprima-3.1.3.tgz#fdca51cee6133895e3c88d535ce49dbff62a4633"
+esprima@^4.0.0:
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/esprima/-/esprima-4.0.1.tgz#13b04cdb3e6c5d19df91ab6987a8695619b0aa71"
+  integrity sha512-eGuFFw7Upda+g4p+QHvnW0RyTX/SVeJBDM/gCtMARO0cLuT2HcEKnTPvhjV6aGeqrCB/sbNop0Kszm0jsaWU4A==
 
 esrecurse@^4.1.0:
   version "4.1.0"
@@ -979,11 +981,12 @@ js-tokens@^3.0.0:
   resolved "https://registry.yarnpkg.com/js-tokens/-/js-tokens-3.0.1.tgz#08e9f132484a2c45a30907e9dc4d5567b7f114d7"
 
 js-yaml@^3.5.1:
-  version "3.8.1"
-  resolved "https://registry.yarnpkg.com/js-yaml/-/js-yaml-3.8.1.tgz#782ba50200be7b9e5a8537001b7804db3ad02628"
+  version "3.13.1"
+  resolved "https://registry.yarnpkg.com/js-yaml/-/js-yaml-3.13.1.tgz#aff151b30bfdfa8e49e05da22e7415e9dfa37847"
+  integrity sha512-YfbcO7jXDdyj0DGxYVSlSeQNHbD7XPWvrVWeVUujrQEoZzWJIRrCPoyk6kL6IAjAG2IolMK4T0hNUe0HOUs5Jw==
   dependencies:
     argparse "^1.0.7"
-    esprima "^3.1.1"
+    esprima "^4.0.0"
 
 json-stable-stringify@^1.0.0, json-stable-stringify@^1.0.1:
   version "1.0.1"
@@ -1519,6 +1522,7 @@ socket.io@^1.7.2:
 sprintf-js@~1.0.2:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/sprintf-js/-/sprintf-js-1.0.3.tgz#04e6926f662895354f3dd015203633b857297e2c"
+  integrity sha1-BOaSb2YolTVPPdAVIDYzuFcpfiw=
 
 stack-trace@0.0.x:
   version "0.0.10"
@@ -1564,10 +1568,32 @@ steam-totp@^1.4.1, steam-totp@^1.5.0:
   dependencies:
     "@doctormckay/stats-reporter" "^1.0.0"
 
-steam-user@^3.23.2, steam-user@^3.29.1:
+steam-user@^3.23.2:
   version "3.29.1"
   resolved "https://registry.yarnpkg.com/steam-user/-/steam-user-3.29.1.tgz#24141391244710387c0273a9eef4611d349f8e12"
   integrity sha512-MYhfFRprMqCTtoLdZnoWaOSGGuYsWbzYyTm5FoZ1MLjcZ4bRDezARoylT9xFXZdEzvjopcDqX0vCuNd7317lMQ==
+  dependencies:
+    "@doctormckay/proxy-agent" "^1.0.0"
+    "@doctormckay/stats-reporter" "^1.0.3"
+    "@doctormckay/steam-crypto" "^1.2.0"
+    adm-zip "^0.4.7"
+    appdirectory "^0.1.0"
+    async "^2.5.0"
+    binarykvparser "^2.2.0"
+    buffer-crc32 "^0.2.13"
+    bytebuffer "^5.0.0"
+    file-manager "^1.0.1"
+    lzma "^2.3.2"
+    protobufjs "^5.0.2"
+    steam-client "^2.5.8"
+    steam-totp "^1.4.1"
+    steamid "^1.1.0"
+    vdf "^0.0.2"
+
+steam-user@^3.29.3:
+  version "3.29.3"
+  resolved "https://registry.yarnpkg.com/steam-user/-/steam-user-3.29.3.tgz#0a40e3a3c247341588b7476b0b3a30b1d3ece0d1"
+  integrity sha512-qvstGZClY5wWiAfoTJNc49t8ThgrcJn7oL8bUEMvJZKKR3UQFRhowonUrBhMeB0pY8Q2ia1u3FD4IMoX7WCjIg==
   dependencies:
     "@doctormckay/proxy-agent" "^1.0.0"
     "@doctormckay/stats-reporter" "^1.0.3"
