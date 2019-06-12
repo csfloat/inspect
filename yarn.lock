@@ -770,12 +770,16 @@ fs.realpath@^1.0.0:
   resolved "https://registry.yarnpkg.com/fs.realpath/-/fs.realpath-1.0.0.tgz#1504ad2523158caa40db4a2787cb01411994ea4f"
 
 generate-function@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/generate-function/-/generate-function-2.0.0.tgz#6858fe7c0969b7d4e9093337647ac79f60dfbe74"
+  version "2.3.1"
+  resolved "https://registry.yarnpkg.com/generate-function/-/generate-function-2.3.1.tgz#f069617690c10c868e73b8465746764f97c3479f"
+  integrity sha512-eeB5GfMNeevm/GRYq20ShmsaGcmI81kIX2K9XQx5miC8KdHaC6Jm0qQ8ZNeGOi7wYB8OsdxKs+Y2oVuTFuVwKQ==
+  dependencies:
+    is-property "^1.0.2"
 
 generate-object-property@^1.1.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/generate-object-property/-/generate-object-property-1.2.0.tgz#9c0e1c40308ce804f4783618b937fa88f99d50d0"
+  integrity sha1-nA4cQDCM6AT0eDYYuTf6iPmdUNA=
   dependencies:
     is-property "^1.0.0"
 
@@ -927,12 +931,19 @@ is-fullwidth-code-point@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/is-fullwidth-code-point/-/is-fullwidth-code-point-2.0.0.tgz#a3b30a5c4f199183167aaab93beefae3ddfb654f"
 
+is-my-ip-valid@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/is-my-ip-valid/-/is-my-ip-valid-1.0.0.tgz#7b351b8e8edd4d3995d4d066680e664d94696824"
+  integrity sha512-gmh/eWXROncUzRnIa1Ubrt5b8ep/MGSnfAUI3aRp+sqTCs1tv1Isl8d8F6JmkN3dXKc3ehZMrtiPN9eL03NuaQ==
+
 is-my-json-valid@^2.10.0:
-  version "2.16.0"
-  resolved "https://registry.yarnpkg.com/is-my-json-valid/-/is-my-json-valid-2.16.0.tgz#f079dd9bfdae65ee2038aae8acbc86ab109e3693"
+  version "2.20.0"
+  resolved "https://registry.yarnpkg.com/is-my-json-valid/-/is-my-json-valid-2.20.0.tgz#1345a6fca3e8daefc10d0fa77067f54cedafd59a"
+  integrity sha512-XTHBZSIIxNsIsZXg7XB5l8z/OBFosl1Wao4tXLpeC7eKU4Vm/kdop2azkPqULwnfGQjmeDIyey9g7afMMtdWAA==
   dependencies:
     generate-function "^2.0.0"
     generate-object-property "^1.1.0"
+    is-my-ip-valid "^1.0.0"
     jsonpointer "^4.0.0"
     xtend "^4.0.0"
 
@@ -952,9 +963,10 @@ is-path-inside@^1.0.0:
   dependencies:
     path-is-inside "^1.0.1"
 
-is-property@^1.0.0:
+is-property@^1.0.0, is-property@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/is-property/-/is-property-1.0.2.tgz#57fe1c4e48474edd65b09911f26b1cd4095dda84"
+  integrity sha1-V/4cTkhHTt1lsJkR8msc1Ald2oQ=
 
 is-resolvable@^1.0.0:
   version "1.0.0"
@@ -1002,6 +1014,7 @@ jsonify@~0.0.0:
 jsonpointer@^4.0.0:
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/jsonpointer/-/jsonpointer-4.0.1.tgz#4fd92cb34e0e9db3c89c8622ecf51f9b978c6cb9"
+  integrity sha1-T9kss04OnbPInIYi7PUfm5eMbLk=
 
 lcid@^1.0.0:
   version "1.0.0"
@@ -1564,10 +1577,32 @@ steam-totp@^1.4.1, steam-totp@^1.5.0:
   dependencies:
     "@doctormckay/stats-reporter" "^1.0.0"
 
-steam-user@^3.23.2, steam-user@^3.29.1:
+steam-user@^3.23.2:
   version "3.29.1"
   resolved "https://registry.yarnpkg.com/steam-user/-/steam-user-3.29.1.tgz#24141391244710387c0273a9eef4611d349f8e12"
   integrity sha512-MYhfFRprMqCTtoLdZnoWaOSGGuYsWbzYyTm5FoZ1MLjcZ4bRDezARoylT9xFXZdEzvjopcDqX0vCuNd7317lMQ==
+  dependencies:
+    "@doctormckay/proxy-agent" "^1.0.0"
+    "@doctormckay/stats-reporter" "^1.0.3"
+    "@doctormckay/steam-crypto" "^1.2.0"
+    adm-zip "^0.4.7"
+    appdirectory "^0.1.0"
+    async "^2.5.0"
+    binarykvparser "^2.2.0"
+    buffer-crc32 "^0.2.13"
+    bytebuffer "^5.0.0"
+    file-manager "^1.0.1"
+    lzma "^2.3.2"
+    protobufjs "^5.0.2"
+    steam-client "^2.5.8"
+    steam-totp "^1.4.1"
+    steamid "^1.1.0"
+    vdf "^0.0.2"
+
+steam-user@^3.29.3:
+  version "3.29.3"
+  resolved "https://registry.yarnpkg.com/steam-user/-/steam-user-3.29.3.tgz#0a40e3a3c247341588b7476b0b3a30b1d3ece0d1"
+  integrity sha512-qvstGZClY5wWiAfoTJNc49t8ThgrcJn7oL8bUEMvJZKKR3UQFRhowonUrBhMeB0pY8Q2ia1u3FD4IMoX7WCjIg==
   dependencies:
     "@doctormckay/proxy-agent" "^1.0.0"
     "@doctormckay/stats-reporter" "^1.0.3"
@@ -1816,6 +1851,7 @@ xmlhttprequest-ssl@1.5.3:
 xtend@^4.0.0:
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/xtend/-/xtend-4.0.1.tgz#a5c6d532be656e23db820efb943a1f04998d63af"
+  integrity sha1-pcbVMr5lbiPbgg77lDofBJmNY68=
 
 y18n@^3.2.0:
   version "3.2.1"
