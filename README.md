@@ -39,8 +39,6 @@ CSGOFloat is a free and open source API service that allows you to obtain the fl
 
 # API
 
-**If you want to heavily use the public API, please host this repo yourself**
-
 ### `https://api.csgofloat.com`
 
 ### `GET /`
@@ -53,12 +51,15 @@ Parameters s, a, d, m can be found in the inspect link of a csgo item.
 | a             | Required: Inspect URL "a" param      |
 | d             | Required: Inspect URL "d" param      |
 | m             | Optional: If a market item, fill out this parameter from the inspect URL      |
+| minimal 	| Optional: Returns a minimal response with only vital keys, default `false` 	|
 
 ##### Examples
 
 `https://api.csgofloat.com/?m=563330426657599553&a=6710760926&d=9406593057029549017`
 
 `https://api.csgofloat.com/?s=76561198084749846&a=6777992090&d=3378412659870065794`
+
+`https://api.csgofloat.com/?s=76561198084749846&a=6777992090&d=3378412659870065794&minimal=true`
 
 
 
@@ -67,6 +68,7 @@ Parameters s, a, d, m can be found in the inspect link of a csgo item.
 | Parameter     | Description   |
 |:-------------:|:-------------|
 | url             | Required: Inspect URL of the CSGO item |
+| minimal 	  | Optional: Returns a minimal response with only vital keys 	|
 
 ##### Examples
 
@@ -171,7 +173,7 @@ The API might be unstable at times, so it is important that you handle the error
 
 In order to retrieve float values for weapons in this way, you must have Steam account(s) with a copy of CS:GO. Each account can request 1 float per second. CSGOFloat allows you to have as many bots as you'd like by inputting the login info into config.js.
 
-Each instance of CSGOFloat can operate around 300 accounts. It is recommended to either configure a MongoDB server or setup another cache such as Varnish or Nginx in front of your server. 
+Each instance of CSGOFloat can operate around 300 accounts. It is recommended to either configure a Postgres/MongoDB server or setup another cache such as Varnish or Nginx in front of your server. 
 
 ## Docker
 
