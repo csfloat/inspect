@@ -47,6 +47,12 @@ for (let loginData of CONFIG.logins) {
 
 DB.connect();
 
+function filterMinimalKeys(doc) {
+    return utils.filterKeys(
+        ['defindex', 'paintindex', 'paintseed', 'origin', 'stickers', 'floatvalue', 'min', 'max', 'origin_name',
+               'low_rank', 'high_rank', 'rarity', 'quality'], doc);
+}
+
 const lookupHandler = function (params) {
     // Check if the item is already in the DB
     DB.getItemData(params).then((doc) => {
@@ -55,9 +61,7 @@ const lookupHandler = function (params) {
             gameData.addAdditionalItemProperties(doc);
 
             if (params.minimal) {
-                doc = utils.filterKeys(
-                    ['defindex', 'paintindex', 'paintseed', 'origin',
-                        'stickers', 'floatvalue', 'min', 'max', 'origin_name', 'low_rank', 'high_rank'], doc);
+                doc = filterMinimalKeys(doc);
             }
 
             doc = utils.removeNullValues(doc);
@@ -235,9 +239,7 @@ queue.process(CONFIG.logins.length, (job) => {
             gameData.addAdditionalItemProperties(itemData.iteminfo);
 
             if (job.data.minimal) {
-                itemData.iteminfo = utils.filterKeys(
-                    ['defindex', 'paintindex', 'paintseed', 'origin',
-                        'stickers', 'floatvalue', 'min', 'max', 'origin_name', 'low_rank', 'high_rank'], itemData.iteminfo);
+                itemData.iteminfo = filterMinimalKeys(itemData.iteminfo);
             }
 
             itemData.iteminfo = utils.removeNullValues(itemData.iteminfo);
