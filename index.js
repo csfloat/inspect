@@ -141,6 +141,13 @@ app.get('/', function(req, res) {
     params.res = res;
     params.minimal = req.query.minimal == 'true' || false;
 
+    // Optionally add pricing data
+    if (CONFIG.price_key && req.query.priceKey === CONFIG.price_key && req.query.price && thisLink.isMarketLink()) {
+        if (utils.isOnlyDigits(req.query.price)) {
+            params.price = parseInt(req.query.price);
+        }
+    }
+
     lookupHandler(params);
 });
 
@@ -232,7 +239,7 @@ queue.process(CONFIG.logins.length, (job) => {
             delete itemData.delay;
 
             // add the item info to the DB
-            await DB.insertItemData(itemData.iteminfo);
+            await DB.insertItemData(itemData.iteminfo, job.data);
 
             // Get rank, annotate with game files
             itemData.iteminfo = Object.assign(itemData.iteminfo, await DB.getItemRank(itemData.iteminfo.a));
