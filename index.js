@@ -58,6 +58,10 @@ const lookupHandler = function (params) {
     DB.getItemData(params).then((doc) => {
         // If we got the result, just return it
         if (doc) {
+            if (!doc.price && params.price) {
+                DB.updateItemPrice(doc.a, params.price);
+            }
+
             gameData.addAdditionalItemProperties(doc);
 
             if (params.minimal) {
