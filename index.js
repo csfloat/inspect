@@ -29,7 +29,8 @@ const errorMsgs = {
     3: `You may only have ${CONFIG.max_simultaneous_requests} pending request(s) at a time`,
     4: 'Valve\'s servers didn\'t reply in time',
     5: 'Valve\'s servers appear to be offline, please try again later',
-    6: 'Something went wrong on our end, please try again'
+    6: 'Something went wrong on our end, please try again',
+    7: 'Invalid origin'
 };
 
 if (CONFIG.logins.length === 0) {
@@ -118,6 +119,9 @@ app.get('/', function(req, res) {
         if (allowed) {
             res.header('Access-Control-Allow-Origin', req.get('origin'));
             res.header('Access-Control-Allow-Methods', 'GET');
+        } else {
+            res.status(400).json({error: errorMsgs[7], code: 7});
+            return;
         }
     }
 
