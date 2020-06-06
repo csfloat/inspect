@@ -123,10 +123,6 @@ app.get('/', function(req, res) {
             res.status(400).json({error: errorMsgs[7], code: 7});
             return;
         }
-    } else if (CONFIG.allowed_origins.length > 0 && (req.get('User-Agent') || '').indexOf('Chrome') > -1) {
-        // If we have explicit allowed origins but the client omits the origin header and is a browser, block
-        res.status(400).json({error: errorMsgs[7], code: 7});
-        return;
     }
 
     // Get and parse parameters
