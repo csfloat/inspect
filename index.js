@@ -95,8 +95,7 @@ function canSubmitPrice(key, link, price) {
     return CONFIG.price_key && key === CONFIG.price_key && price && link.isMarketLink() && utils.isOnlyDigits(price);
 }
 
-app.get('/', function(req, res) {
-    // Allow some origins
+app.use(function (req, res, next) {
     if (CONFIG.allowed_origins.length > 0 && req.get('origin') != undefined) {
         // check to see if its a valid domain
         const allowed = CONFIG.allowed_origins.indexOf(req.get('origin')) > -1 ||
@@ -107,7 +106,10 @@ app.get('/', function(req, res) {
             res.header('Access-Control-Allow-Methods', 'GET');
         }
     }
+    next()
+});
 
+app.get('/', function(req, res) {
     // Get and parse parameters
     let link;
 
@@ -139,7 +141,6 @@ app.get('/', function(req, res) {
         errors.GenericBad.respond(res);
     }
 });
-
 
 app.post('/bulk', (req, res) => {
     if (!req.body || (CONFIG.bulk_key && req.body.bulk_key != CONFIG.bulk_key)) {
