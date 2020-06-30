@@ -1,24 +1,10 @@
 module.exports = {
     // Configuration for the HTTP API server
     'http': {
-        'enable': true,
         'port': 80
-    },
-    // Configuration for the HTTPS API server
-    'https': {
-        'enable': false,
-        'port': 443,
-        'key_path': 'certs/sslnopass.key',
-        'cert_path': 'certs/api.example.com.crt',
-        'ca_path': 'certs/example.cer'
     },
     // Whether to trust a forwarding proxy's IP (trust X-Forwarded-For)
     'trust_proxy': false,
-    // Configuration for the socket.io server
-    'socketio': {
-        'enable': false,
-        'origins': 'example.com:80'
-    },
     // List of usernames and passwords for the Steam accounts
     'logins': [
         {
@@ -68,4 +54,6 @@ module.exports = {
     'database_url': '',
     // OPTIONAL: Key by the caller to allow inserting price information, required to use the feature
     'price_key': '',
+    // OPTIONAL: Key by the caller to allow placing bulk searches
+    'bulk_key': '',
 };

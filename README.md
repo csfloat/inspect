@@ -51,15 +51,12 @@ Parameters s, a, d, m can be found in the inspect link of a csgo item.
 | a             | Required: Inspect URL "a" param      |
 | d             | Required: Inspect URL "d" param      |
 | m             | Optional: If a market item, fill out this parameter from the inspect URL      |
-| minimal 	| Optional: Returns a minimal response with only vital keys, default `false` 	|
 
 ##### Examples
 
 `https://api.csgofloat.com/?m=563330426657599553&a=6710760926&d=9406593057029549017`
 
 `https://api.csgofloat.com/?s=76561198084749846&a=6777992090&d=3378412659870065794`
-
-`https://api.csgofloat.com/?s=76561198084749846&a=6777992090&d=3378412659870065794&minimal=true`
 
 
 
@@ -68,7 +65,6 @@ Parameters s, a, d, m can be found in the inspect link of a csgo item.
 | Parameter     | Description   |
 |:-------------:|:-------------|
 | url             | Required: Inspect URL of the CSGO item |
-| minimal 	  | Optional: Returns a minimal response with only vital keys 	|
 
 ##### Examples
 
@@ -224,6 +220,12 @@ If your bot doesn't own CS:GO, CSGOFloat will automatically try to obtain a lice
 	* You'll need to keep the `auth` field filled in for future logins
 
 ## Breaking Changes
+
+### v3.0 -> v4.0
+
+* MongoDB is no longer supported, use Postgres instead
+* Socket.io access is no longer supported
+* Built-in HTTPS handling has been removed, reverse proxy to HTTP instead
 
 ### v2.0 -> v3.0
 
