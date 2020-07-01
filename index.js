@@ -41,6 +41,13 @@ postgres.connect();
 
 // Setup and configure express
 const app = require('express')();
+app.use(function (req, res, next) {
+    if (req.method === 'POST') {
+        // Default content-type
+        req.headers['content-type'] = 'application/json';
+    }
+    next();
+});
 app.use(bodyParser.json());
 
 app.use(function (error, req, res, next) {
