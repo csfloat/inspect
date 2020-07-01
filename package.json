@@ -1,6 +1,6 @@
 {
   "name": "csgofloat",
-  "version": "3.0.2",
+  "version": "4.0.0",
   "description": "Source Code that Powers the CSGOFloat API",
   "author": "Step7750",
   "main": "index.js",
@@ -23,7 +23,8 @@
     "socket.io": "^1.7.2",
     "steam-totp": "^1.5.0",
     "steam-user": "^3.29.3",
-    "winston": "^2.4.4"
+    "winston": "^2.4.4",
+    "body-parser": "^1.19.0"
   },
   "devDependencies": {
     "eslint": "^4.18.2",
