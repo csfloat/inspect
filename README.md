@@ -73,7 +73,7 @@ Parameters s, a, d, m can be found in the inspect link of a csgo item.
 `https://api.csgofloat.com/?url=steam://rungame/730/76561202255233023/+csgo_econ_action_preview%20M625254122282020305A6760346663D30614827701953021`
 
 
-## Reply
+### Reply
 
 The reply of this API is based upon [this CSGO protobuf](https://github.com/SteamDatabase/GameTracking-CSGO/blob/a00b71ec84b24e0773c5fbd595eb91e17fa57f8f/Protobufs/cstrike15_gcmessages.proto#L729).
 
@@ -141,9 +141,54 @@ The reply of this API is based upon [this CSGO protobuf](https://github.com/Stea
 }
 ```
 
-## Errors
+### `POST /bulk`
 
-The API might be unstable at times, so it is important that you handle the errors correctly.
+Allows you to request the inspect link data for multiple items at once.
+
+NOTE: Ensure that you send proper `Content-Type: application/json` headers
+
+Request Body:
+
+```json
+{
+	"links": [
+		{"link": "steam://rungame/730/76561202255233023/+csgo_econ_action_preview%20M2906459769049600931A18971892678D9403672490970763167"},
+		{"link": "steam://rungame/730/76561202255233023/+csgo_econ_action_preview%20M2907585668964658722A17231546984D5353704955732169451"}
+	]
+}
+```
+
+Example Response:
+
+```json
+{
+    "18971892678": {
+        "origin": 8,
+        "quality": 4,
+        "rarity": 5,
+        "a": "18971892678",
+        "d": "9403672490970763167",
+        "paintseed": 49,
+        "defindex": 7,
+        "paintindex": 282,
+        // STUB...
+    },
+    "17231546984": {
+        "origin": 4,
+        "quality": 4,
+        "rarity": 4,
+        "a": "17231546984",
+        "d": "5353704955732169451",
+        "paintseed": 597,
+        "defindex": 9,
+        "paintindex": 838,
+        // STUB...
+    },
+    ...
+}
+```
+
+## Errors
 
 ##### Error Codes
 
@@ -154,6 +199,9 @@ The API might be unstable at times, so it is important that you handle the error
 | 3             | You may only have X pending request(s) at a time |
 | 4             | Valve's servers didn't reply in time |
 | 5             | Valve's servers appear to be offline, please try again later! |
+| 6             | Something went wrong on our end, please try again |
+| 7             | Improper body format |
+| 8             | Bad Secret |
 
 ##### Example Error
 
@@ -164,12 +212,39 @@ The API might be unstable at times, so it is important that you handle the error
 }
 ```
 
+If using a `/bulk` request and the error only applies to a specific inspect link, the returned response for it will be
+replaced while other inspect links will be processed normally. If the error applies to the entire request (ie. bad post body),
+it will return a root-level error as shown above.
+
+Example:
+
+```
+{
+    "18971892678": {
+        "origin": 8,
+        "quality": 4,
+        "rarity": 5,
+        "a": "18971892678",
+        "d": "9403672490970763167",
+        "paintseed": 49,
+        "defindex": 7,
+        "paintindex": 282,
+        // STUB...
+    },
+    "16231546984": {
+        "error": "Valve's servers didn't reply in time",
+        "code": 4,
+        "status": 500
+    }
+}
+```
+
 
 # How to Install
 
 In order to retrieve float values for weapons in this way, you must have Steam account(s) with a copy of CS:GO. Each account can request 1 float per second. CSGOFloat allows you to have as many bots as you'd like by inputting the login info into config.js.
 
-Each instance of CSGOFloat can operate around 300 accounts. It is recommended to either configure a Postgres/MongoDB server or setup another cache such as Varnish or Nginx in front of your server. 
+Each instance of CSGOFloat can operate around 300 accounts. It is recommended to either configure a Postgres server or setup another cache such as Varnish or Nginx in front of your server. 
 
 ## Docker
 
@@ -193,7 +268,7 @@ Clone the repo (or `npm install csgofloat`) and install the Node.js dependencies
 1. Copy `config.example.js` to `config.js`
 2. Add your bot(s) login information to `config.js`
 3. Edit `config.js` with your desired settings
-4. Ensure MongoDB is running if you've set it's database url
+4. Ensure Postgres is running if you've set it's database url
 5. Run `node index.js` in the main directory
 6. [How to First Login a Bot](https://github.com/Step7750/CSGOFloat#how-to-first-login-a-bot)
 7. Navigate to the IP that the server is hosted on and query the API using the docs above!
