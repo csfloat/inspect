@@ -214,9 +214,9 @@ queue.process(CONFIG.logins.length, async (job) => {
     return delay;
 });
 
-queue.on('job failed', (job) => {
+queue.on('job failed', (job, err) => {
     const params = job.data.link.getParams();
-    winston.warn(`Job Failed! S: ${params.s} A: ${params.a} D: ${params.d} M: ${params.m} IP: ${job.ip}`);
+    winston.warn(`Job Failed! S: ${params.s} A: ${params.a} D: ${params.d} M: ${params.m} IP: ${job.ip}, Err: ${(err || '').toString()}`);
 
     job.data.job.setResponse(params.a, errors.TTLExceeded);
 });
