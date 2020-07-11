@@ -50,7 +50,7 @@ module.exports = {
     'enable_game_file_updates': true,
     // Amount of seconds to wait between updating game files (0 = No Interval Updates)
     'game_files_update_interval': 3600,
-    // OPTIONAL: MongoDB or Postgres connection info to store results in (ex. mongodb://localhost:27017/CSGOFloatdb)
+    // OPTIONAL: Postgres connection string to store results in (ex. postgres://user:pass@127.0.0.1:5432/postgres?sslmode=disable)
     'database_url': '',
     // OPTIONAL: Key by the caller to allow inserting price information, required to use the feature
     'price_key': '',
