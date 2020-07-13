@@ -12,6 +12,10 @@ class Error {
     respond(res) {
         res.status(this.statusCode).json(this.getJSON());
     }
+
+    toString() {
+        return `[Code ${this.code}] - ${this.message}`;
+    }
 }
 
 module.exports = {
@@ -24,6 +28,7 @@ module.exports = {
     GenericBad: new Error('Something went wrong on our end, please try again', 6, 500),
     BadBody: new Error('Improper body format', 7, 400),
     BadSecret: new Error('Bad Secret', 8, 400),
+    NoBotsAvailable: new Error('No bots available to fulfill this request', 9, 500)
 };
 
 

@@ -191,7 +191,7 @@ const http_server = require('http').Server(app);
 http_server.listen(CONFIG.http.port);
 winston.info('Listening for HTTP on port: ' + CONFIG.http.port);
 
-queue.process(CONFIG.logins.length, async (job) => {
+queue.process(CONFIG.logins.length, botController, async (job) => {
     const itemData = await botController.lookupFloat(job.data.link);
     winston.debug(`Received itemData for ${job.data.link.getParams().a}`);
 
