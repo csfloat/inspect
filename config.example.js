@@ -52,6 +52,8 @@ module.exports = {
     'game_files_update_interval': 3600,
     // OPTIONAL: Postgres connection string to store results in (ex. postgres://user:pass@127.0.0.1:5432/postgres?sslmode=disable)
     'database_url': '',
+    // OPTIONAL: Enable bulk inserts, may improve performance with many requests
+    'enable_bulk_inserts': false,
     // OPTIONAL: Key by the caller to allow inserting price information, required to use the feature
     'price_key': '',
     // OPTIONAL: Key by the caller to allow placing bulk searches
