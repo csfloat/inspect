@@ -188,6 +188,15 @@ Example Response:
 }
 ```
 
+### `POST /stats`
+
+Gives some data on the current status of your bots and queue.
+
+Example:
+```json
+{"bots_online":100,"bots_total":100,"queue_size":20,"queue_concurrency":100}
+```
+
 ## Errors
 
 ##### Error Codes

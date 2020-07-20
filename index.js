@@ -187,6 +187,15 @@ app.post('/bulk', (req, res) => {
     }
 });
 
+app.get('/stats', (req, res) => {
+    res.json({
+        bots_online: botController.getReadyAmount(),
+        bots_total: botController.bots.length,
+        queue_size: queue.queue.length,
+        queue_concurrency: queue.concurrency,
+    });
+});
+
 const http_server = require('http').Server(app);
 http_server.listen(CONFIG.http.port);
 winston.info('Listening for HTTP on port: ' + CONFIG.http.port);
