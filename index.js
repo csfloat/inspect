@@ -8,6 +8,7 @@ const optionDefinitions = [
 const winston = require('winston'),
     args = require('command-line-args')(optionDefinitions),
     bodyParser = require('body-parser'),
+    rateLimit = require('express-rate-limit'),
     utils = require('./lib/utils'),
     queue = new (require('./lib/queue'))(),
     InspectURL = require('./lib/inspect_url'),
@@ -115,6 +116,17 @@ app.use(function (req, res, next) {
     }
     next()
 });
+
+if (CONFIG.rate_limit && CONFIG.rate_limit.enable) {
+    app.use(rateLimit({
+        windowMs: CONFIG.rate_limit.window_ms,
+        max: CONFIG.rate_limit.max,
+        headers: false,
+        handler: function (req, res) {
+            errors.RateLimit.respond(res);
+        }
+    }))
+}
 
 app.get('/', function(req, res) {
     // Get and parse parameters
