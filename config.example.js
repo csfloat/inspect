@@ -56,7 +56,7 @@ module.exports = {
     'enable_game_file_updates': true,
     // Amount of seconds to wait between updating game files (0 = No Interval Updates)
     'game_files_update_interval': 3600,
-    // OPTIONAL: Postgres connection string to store results in (ex. postgres://user:pass@127.0.0.1:5432/postgres?sslmode=disable)
+    // Postgres connection string to store results in (ex. postgres://user:pass@127.0.0.1:5432/postgres?sslmode=disable)
     'database_url': '',
     // OPTIONAL: Enable bulk inserts, may improve performance with many requests
     'enable_bulk_inserts': false,
