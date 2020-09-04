@@ -17,7 +17,7 @@
     "express": "^4.16.4",
     "globaloffensive": "^1.3.2",
     "long": "^3.2.0",
-    "mongodb": "^2.2.36",
+    "mongodb": "^3.1.13",
     "simple-vdf": "^1.1.1",
     "socket.io": "^1.7.2",
     "steam-totp": "^1.5.0",
