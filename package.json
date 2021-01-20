@@ -19,7 +19,7 @@
     "long": "^3.2.0",
     "mongodb": "^2.2.36",
     "simple-vdf": "^1.1.1",
-    "socket.io": "^1.7.2",
+    "socket.io": "^2.4.0",
     "steam-totp": "^1.5.0",
     "steam-user": "^3.29.3",
     "winston": "^2.4.4"
