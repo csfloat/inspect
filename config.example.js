@@ -1,24 +1,10 @@
 module.exports = {
     // Configuration for the HTTP API server
     'http': {
-        'enable': true,
         'port': 80
-    },
-    // Configuration for the HTTPS API server
-    'https': {
-        'enable': false,
-        'port': 443,
-        'key_path': 'certs/sslnopass.key',
-        'cert_path': 'certs/api.example.com.crt',
-        'ca_path': 'certs/example.cer'
     },
     // Whether to trust a forwarding proxy's IP (trust X-Forwarded-For)
     'trust_proxy': false,
-    // Configuration for the socket.io server
-    'socketio': {
-        'enable': false,
-        'origins': 'example.com:80'
-    },
     // List of usernames and passwords for the Steam accounts
     'logins': [
         {
@@ -56,6 +42,12 @@ module.exports = {
     'allowed_regex_origins': [
         'https://.*\\.steamcommunity\\.com'
     ],
+    // Optionally configure a global rate limit across all endpoints
+    'rate_limit': {
+        'enable': false,
+        'window_ms': 60 * 60 * 1000, // 60 min
+        'max': 10000
+    },
     // Logging Level (error, warn, info, verbose, debug, silly)
     'logLevel': 'debug',
     // Max amount of simultaneous requests from the same IP  (incl. WS and HTTP/HTTPS), -1 for unlimited
@@ -64,6 +56,12 @@ module.exports = {
     'enable_game_file_updates': true,
     // Amount of seconds to wait between updating game files (0 = No Interval Updates)
     'game_files_update_interval': 3600,
-    // OPTIONAL: MongoDB connection info to store results in (ex. mongodb://localhost:27017/CSGOFloatdb)
-    'database_url': ''
+    // Postgres connection string to store results in (ex. postgres://user:pass@127.0.0.1:5432/postgres?sslmode=disable)
+    'database_url': '',
+    // OPTIONAL: Enable bulk inserts, may improve performance with many requests
+    'enable_bulk_inserts': false,
+    // OPTIONAL: Key by the caller to allow inserting price information, required to use the feature
+    'price_key': '',
+    // OPTIONAL: Key by the caller to allow placing bulk searches
+    'bulk_key': '',
 };
