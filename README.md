@@ -39,6 +39,8 @@ CSGOFloat is a free and open source API service that allows you to obtain the fl
 
 # API
 
+**!! If you want to heavily use the public API, please host this repo yourself !!**
+
 ### `https://api.csgofloat.com`
 
 ### `GET /`
