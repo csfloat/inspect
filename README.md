@@ -190,7 +190,7 @@ Example Response:
 }
 ```
 
-### `POST /stats`
+### `GET /stats`
 
 Gives some data on the current status of your bots and queue.
 
