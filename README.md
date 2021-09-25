@@ -262,8 +262,8 @@ Each instance of CSGOFloat can operate around 300 accounts. It is recommended to
 Pull the [image](https://hub.docker.com/r/step7750/csgofloat) from docker and mount the config directory
 
 ```
-docker pull step7750/csgofloat:latest
-docker run -d --name csgofloat -v /host/config:/config -p 80:80 -p 443:443 step7750/csgofloat:latest
+docker pull step7750/csgofloat:master
+docker run -d --name csgofloat -v /host/config:/config -p 80:80 -p 443:443 step7750/csgofloat:master
 ```
 
 The first time you start the docker container, it'll copy the `config.js` file to the config directory and stop. You'll need to edit this file and include your bots login information and then start the docker again. See the section [How to First Login a Bot](https://github.com/Step7750/CSGOFloat#how-to-first-login-a-bot) for further info.
