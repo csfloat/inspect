@@ -39,7 +39,7 @@ CSGOFloat is a free and open source API service that allows you to obtain the fl
 
 # API
 
-**!! If you want to heavily use the public API, please host this repo yourself !!**
+### **!! If you want to heavily use the public API, please host this repo yourself !!**
 
 ### `https://api.csgofloat.com`
 
@@ -148,6 +148,8 @@ The reply of this API is based upon [this CSGO protobuf](https://github.com/Stea
 Allows you to request the inspect link data for multiple items at once.
 
 NOTE: Ensure that you send proper `Content-Type: application/json` headers
+
+> The public `api.csgofloat.com` API service **DOES NOT** allow for this endpoint.
 
 Request Body:
 
