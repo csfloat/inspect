@@ -270,6 +270,8 @@ docker run -d --name csgofloat -v /host/config:/config -p 80:80 -p 443:443 step7
 
 The first time you start the docker container, it'll copy the `config.js` file to the config directory and stop. You'll need to edit this file and include your bots login information and then start the docker again. See the section [How to First Login a Bot](https://github.com/Step7750/CSGOFloat#how-to-first-login-a-bot) for further info.
 
+**Make sure you configure a Postgres server to use for caching!**
+
 ## Manual
 
 Requires Node.js v8+!
