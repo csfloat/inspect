@@ -23,8 +23,8 @@
     "pg": "^7.18.2",
     "simple-vdf": "^1.1.1",
     "socket.io": "^2.4.0",
-    "steam-totp": "^1.5.0",
-    "steam-user": "^4.19.10",
+    "steam-totp": "^2.1.2",
+    "steam-user": "^4.28.0",
     "winston": "^2.4.5"
   },
   "devDependencies": {
