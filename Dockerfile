@@ -1,4 +1,4 @@
-FROM node:10
+FROM node:18.15
 
 # Create app directory
 WORKDIR /usr/src/csgofloat
