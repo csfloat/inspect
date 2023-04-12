@@ -29,7 +29,8 @@ module.exports = {
     BadBody: new Error('Improper body format', 7, 400),
     BadSecret: new Error('Bad Secret', 8, 400),
     NoBotsAvailable: new Error('No bots available to fulfill this request', 9, 500),
-    RateLimit: new Error('Rate limit exceeded, too many requests', 10, 429)
+    RateLimit: new Error('Rate limit exceeded, too many requests', 10, 429),
+    MaxQueueSize: new Error('Queue size is full, please try again later', 11, 500),
 };
 
 

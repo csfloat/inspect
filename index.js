@@ -94,6 +94,10 @@ async function handleJob(job) {
         return job.setResponseRemaining(errors.MaxRequests);
     }
 
+    if (CONFIG.max_queue_size > 0 && (queue.size() + job.remainingSize()) > CONFIG.max_queue_size) {
+        return job.setResponseRemaining(errors.MaxQueueSize);
+    }
+
     if (job.remainingSize() > 0) {
         queue.addJob(job, CONFIG.bot_settings.max_attempts);
     }

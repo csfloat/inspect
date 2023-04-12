@@ -64,4 +64,6 @@ module.exports = {
     'price_key': '',
     // OPTIONAL: Key by the caller to allow placing bulk searches
     'bulk_key': '',
+    // OPTIONAL: Maximum queue size allowed before dropping requests
+    'max_queue_size': -1,
 };
