@@ -35,7 +35,21 @@ if (args.steam_data) {
 }
 
 for (let loginData of CONFIG.logins) {
-    botController.addBot(loginData, CONFIG.bot_settings);
+    const settings = Object.assign({}, CONFIG.bot_settings);
+    if (CONFIG.proxies && CONFIG.proxies.length > 0) {
+        const proxy = CONFIG.proxies[Math.floor(Math.random() * CONFIG.proxies.length)];
+
+        if (proxy.startsWith('http://')) {
+            settings.steam_user = Object.assign({}, settings.steam_user, {httpProxy: proxy});
+        } else if (proxy.startsWith('socks5://')) {
+            settings.steam_user = Object.assign({}, settings.steam_user, {socksProxy: proxy});
+        } else {
+            console.log(`Invalid proxy '${proxy}' in config, must prefix with http:// or socks5://`);
+            process.exit(1);
+        }
+    }
+
+    botController.addBot(loginData, settings);
 }
 
 postgres.connect();
