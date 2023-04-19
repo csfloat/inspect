@@ -1968,10 +1968,10 @@ steam-totp@^2.0.1, steam-totp@^2.1.2:
   resolved "https://registry.npmjs.org/steam-totp/-/steam-totp-2.1.2.tgz"
   integrity sha512-bTKlc/NoIUQId+my+O556s55DDsNNXfVIPWFDNVu68beql7AJhV0c+GTjFxfwCDYfdc4NkAme+0WrDdnY2D2VA==
 
-steam-user@^4.28.0:
-  version "4.28.0"
-  resolved "https://registry.npmjs.org/steam-user/-/steam-user-4.28.0.tgz"
-  integrity sha512-TajS+/XcDAnpoQXsus9hPr8fPxsN65StmiEMcVP2iDakw22tu4SmqsWE9glXKCBCfoRJcFyl5ltgGa2+BRnawg==
+steam-user@^4.28.1:
+  version "4.28.1"
+  resolved "https://registry.npmjs.org/steam-user/-/steam-user-4.28.1.tgz"
+  integrity sha512-CVpOm6Z1WsL8myqIv+vyjJKjG+e7+27t8inDqcZn3f0pdErr0iuYlOnlaptOqgdWZomYgjlhMhSXOMexKeXaRQ==
   dependencies:
     "@bbob/parser" "^2.2.0"
     "@doctormckay/stdlib" "^1.15.1"
