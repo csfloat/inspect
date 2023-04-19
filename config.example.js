@@ -19,6 +19,8 @@ module.exports = {
             'auth': '2FA_TOKEN_2'
         }
     ],
+    // Optional proxies to auto-rotate for each bot, each bot will have a random proxy
+    'proxies': [],
     // Bot settings
     'bot_settings': {
         // Amount of attempts for each request to Valve
