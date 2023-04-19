@@ -19,7 +19,7 @@ module.exports = {
             'auth': '2FA_TOKEN_2'
         }
     ],
-    // Optional HTTP/SOCKS5 proxies to auto-rotate for each bot, each bot will have a random proxy
+    // Optional HTTP/SOCKS5 proxies to auto-rotate for each bot in a round-robin
     'proxies': [],
     // Bot settings
     'bot_settings': {
