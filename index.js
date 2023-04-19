@@ -34,10 +34,10 @@ if (args.steam_data) {
     CONFIG.bot_settings.steam_user.dataDirectory = args.steam_data;
 }
 
-for (let loginData of CONFIG.logins) {
+for (let [i, loginData] of CONFIG.logins.entries()) {
     const settings = Object.assign({}, CONFIG.bot_settings);
     if (CONFIG.proxies && CONFIG.proxies.length > 0) {
-        const proxy = CONFIG.proxies[Math.floor(Math.random() * CONFIG.proxies.length)];
+        const proxy = CONFIG.proxies[i % CONFIG.proxies.length];
 
         if (proxy.startsWith('http://')) {
             settings.steam_user = Object.assign({}, settings.steam_user, {httpProxy: proxy});
