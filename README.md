@@ -39,10 +39,6 @@ CSGOFloat is a free and open source API service that allows you to obtain the fl
 
 # API
 
-### **!! If you want to heavily use the public API, please host this repo yourself !!**
-
-### `https://api.csgofloat.com`
-
 ### `GET /`
 
 Parameters s, a, d, m can be found in the inspect link of a csgo item. 
@@ -56,9 +52,9 @@ Parameters s, a, d, m can be found in the inspect link of a csgo item.
 
 ##### Examples
 
-`https://api.csgofloat.com/?m=563330426657599553&a=6710760926&d=9406593057029549017`
+`http://<ip>:<port>/?m=563330426657599553&a=6710760926&d=9406593057029549017`
 
-`https://api.csgofloat.com/?s=76561198084749846&a=6777992090&d=3378412659870065794`
+`http://<ip>:<port>/?s=76561198084749846&a=6777992090&d=3378412659870065794`
 
 
 
@@ -70,9 +66,9 @@ Parameters s, a, d, m can be found in the inspect link of a csgo item.
 
 ##### Examples
 
-`https://api.csgofloat.com/?url=steam://rungame/730/76561202255233023/+csgo_econ_action_preview%20S76561198084749846A698323590D7935523998312483177`
+`http://<ip>:<port>/?url=steam://rungame/730/76561202255233023/+csgo_econ_action_preview%20S76561198084749846A698323590D7935523998312483177`
 
-`https://api.csgofloat.com/?url=steam://rungame/730/76561202255233023/+csgo_econ_action_preview%20M625254122282020305A6760346663D30614827701953021`
+`http://<ip>:<port>/?url=steam://rungame/730/76561202255233023/+csgo_econ_action_preview%20M625254122282020305A6760346663D30614827701953021`
 
 
 ### Reply
@@ -148,8 +144,6 @@ The reply of this API is based upon [this CSGO protobuf](https://github.com/Stea
 Allows you to request the inspect link data for multiple items at once.
 
 NOTE: Ensure that you send proper `Content-Type: application/json` headers
-
-> The public `api.csgofloat.com` API service **DOES NOT** allow for this endpoint.
 
 Request Body:
 
