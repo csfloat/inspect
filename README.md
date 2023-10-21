@@ -294,13 +294,13 @@ If your bot doesn't own CS:GO, CSGOFloat will automatically try to obtain a lice
 	* It will tell you that an auth code was sent to your email
 	* Input the code from your email into the `auth` field for the bot
 	* Restart CSGOFloat
-	* It should successfully login and create a sentry file in the current [node-steam-user config directory](https://github.com/DoctorMcKay/node-steam-user#datadirectory)
+	* It should successfully login and create machine auth token files for each account in the current [node-steam-user config directory](https://github.com/DoctorMcKay/node-steam-user#datadirectory)
 	* The `auth` field can now be optionally removed in your login file for further logins
 * Using Mobile 2FA
 	* Fill in the `user` and `pass` fields for the bot
 	* Fill in the `auth` field with the `shared_secret` for the bot
 	* Start up CSGOFloat
-	* It should successfully login and create a sentry file in the current [node-steam-user config directory](https://github.com/DoctorMcKay/node-steam-user#datadirectory)
+	* It should successfully login and create machine auth token files for each account in the current [node-steam-user config directory](https://github.com/DoctorMcKay/node-steam-user#datadirectory)
 	* You'll need to keep the `auth` field filled in for future logins
 
 ## Breaking Changes
