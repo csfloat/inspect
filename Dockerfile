@@ -4,7 +4,7 @@ FROM node:18.15
 WORKDIR /inspect
 
 # Copy the source code.
-COPY ../.. ./
+COPY ./inspect ./
 
 RUN npm install
 
