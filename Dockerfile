@@ -3,7 +3,8 @@ FROM node:18.15
 # Create app directory
 WORKDIR /inspect
 
-COPY . .
+# Copy the source code.
+COPY ../.. ./
 
 RUN npm install
 
