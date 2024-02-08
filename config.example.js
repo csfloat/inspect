@@ -7,22 +7,6 @@ module.exports = {
   },
   // Whether to trust a forwarding proxy's IP (trust X-Forwarded-For)
   trust_proxy: false,
-  // List of usernames and passwords for the Steam accounts
-  logins: [
-    {
-      user: "USERNAME",
-      pass: "PASSWORD",
-      // You can either use a 2FA email/mobile token (5 letters/digits), or the shared_secret of mobile 2FA
-      auth: "2FA_TOKEN",
-    },
-    {
-      user: "USERNAME_2",
-      pass: "PASSWORD_2",
-      auth: "2FA_TOKEN_2",
-    },
-  ],
-  // Optional HTTP/SOCKS5 proxies to auto-rotate for each bot in a round-robin
-  proxies: [],
   // Bot settings
   bot_settings: {
     // Amount of attempts for each request to Valve
@@ -36,8 +20,6 @@ module.exports = {
   },
   // Origins allowed to connect to the HTTP/HTTPS API
   allowed_origins: [
-    "http://example.com",
-    "https://example.com",
     "chrome-extension://jjicbefpemnphinccgikpdaagjebbnhg",
     "http://steamcommunity.com",
     "https://steamcommunity.com",

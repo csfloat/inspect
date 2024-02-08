@@ -12,8 +12,8 @@ const winston = require("winston"),
   utils = require("./lib/utils"),
   queue = new (require("./lib/queue"))(),
   InspectURL = require("./lib/inspect_url"),
-  botController = new (require("./lib/bot_controller"))(),
   CONFIG = require(args.config),
+  botController = new (require("./lib/bot_controller"))(Object.assign({}, CONFIG.bot_settings)),
   postgres = new (require("./lib/postgres"))(CONFIG.database_url, CONFIG.enable_bulk_inserts),
   gameData = new (require("./lib/game_data"))(
     CONFIG.game_files_update_interval,
@@ -28,31 +28,8 @@ if (CONFIG.max_simultaneous_requests === undefined) {
 
 winston.level = CONFIG.logLevel || "debug";
 
-if (CONFIG.logins.length === 0) {
-  console.log("There are no bot logins. Please add some in config.json");
-  process.exit(1);
-}
-
 if (args.steam_data) {
   CONFIG.bot_settings.steam_user.dataDirectory = args.steam_data;
-}
-
-for (let [i, loginData] of CONFIG.logins.entries()) {
-  const settings = Object.assign({}, CONFIG.bot_settings);
-  if (CONFIG.proxies && CONFIG.proxies.length > 0) {
-    const proxy = CONFIG.proxies[i % CONFIG.proxies.length];
-
-    if (proxy.startsWith("http://")) {
-      settings.steam_user = Object.assign({}, settings.steam_user, { httpProxy: proxy });
-    } else if (proxy.startsWith("socks5://")) {
-      settings.steam_user = Object.assign({}, settings.steam_user, { socksProxy: proxy });
-    } else {
-      console.log(`Invalid proxy '${proxy}' in config, must prefix with http:// or socks5://`);
-      process.exit(1);
-    }
-  }
-
-  botController.addBot(loginData, settings);
 }
 
 postgres.connect();
@@ -239,11 +216,28 @@ app.get("/stats", (req, res) => {
   });
 });
 
+app.post("/sync_accounts", (req, res) => {
+  if (!req.body) return errors.BadBody.respond(res);
+
+  const accounts = req.body.accounts;
+
+  if (!Array.isArray(accounts))
+    return errors.BadBody.respond(res);
+
+  try {
+    botController.syncBots(accounts);
+    res.status(200).send(JSON.stringify({ success: true }))
+  } catch (e) {
+    winston.warn(e);
+    errors.GenericBad.respond(res);
+  }
+})
+
 const http_server = require("http").Server(app);
 http_server.listen(CONFIG.http.port);
 winston.info("Listening for HTTP on port: " + CONFIG.http.port);
 
-queue.process(CONFIG.logins.length, botController, async job => {
+queue.process(botController.bots.length, botController, async job => {
   const itemData = await botController.lookupFloat(job.data.link);
   winston.debug(`Received itemData for ${job.data.link.getParams().a}`);
 
