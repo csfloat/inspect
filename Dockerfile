@@ -3,7 +3,7 @@ FROM node:18.15
 # Create app directory
 WORKDIR /inspect
 
-COPY . /inspect
+COPY . .
 
 RUN npm install
 
