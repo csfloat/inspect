@@ -274,7 +274,7 @@ Clone the repo (or `npm install csgofloat`) and install the Node.js dependencies
 
 #### Steps:
 
-1. Copy `config.example.js` to `config.js`
+1. Copy `config.js` to `config.js`
 2. Add your bot(s) login information to `config.js`
 3. Edit `config.js` with your desired settings
 4. Ensure Postgres is running if you've set it's database url
