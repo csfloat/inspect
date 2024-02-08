@@ -10,4 +10,4 @@ RUN npm install
 
 EXPOSE 80
 
-CMD [ "/bin/bash", "docker_start.sh" ]
+CMD [ "node", "index.js" ]

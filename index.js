@@ -2,7 +2,7 @@ global._mckay_statistics_opt_out = true; // Opt out of node-steam-user stats
 
 const optionDefinitions = [
   { name: "config", alias: "c", type: String, defaultValue: "./config.js" }, // Config file location
-  { name: "steam_data", alias: "s", type: String }, // Steam data directory
+  { name: "steam_data", alias: "s", type: String, defaultValue: "./steam_data" }, // Steam data directory
 ];
 
 const winston = require("winston"),
@@ -30,6 +30,9 @@ winston.level = CONFIG.logLevel || "debug";
 
 if (args.steam_data) {
   CONFIG.bot_settings.steam_user.dataDirectory = args.steam_data;
+} else {
+  fs.mkdirSync("./steam_data");
+  CONFIG.bot_settings.steam_user.dataDirectory = "./steam_data";
 }
 
 postgres.connect();
