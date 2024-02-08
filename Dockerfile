@@ -8,7 +8,7 @@ WORKDIR /inspect
 # where available (npm@5+)
 COPY package*.json ./
 
-RUN npm ci
+RUN npm install
 
 # Bundle app source
 COPY . .
