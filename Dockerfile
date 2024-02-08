@@ -14,6 +14,5 @@ RUN npm ci
 COPY . .
 
 EXPOSE 80
-VOLUME /config
 
 CMD [ "/bin/bash", "docker_start.sh" ]
