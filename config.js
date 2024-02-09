@@ -39,7 +39,7 @@ module.exports = {
   // Logging Level (error, warn, info, verbose, debug, silly)
   logLevel: "debug",
   // Max amount of simultaneous requests from the same IP  (incl. WS and HTTP/HTTPS), -1 for unlimited
-  max_simultaneous_requests: 1,
+  max_simultaneous_requests: -1,
   // Bool to enable game file updates from the SteamDB Github tracker (updated item definitions, images, names)
   enable_game_file_updates: true,
   // Amount of seconds to wait between updating game files (0 = No Interval Updates)

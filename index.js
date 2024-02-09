@@ -196,7 +196,8 @@ app.post("/bulk", async (req, res) => {
   for (const data of req.body.links) {
     const link = new InspectURL(data.link);
     if (!link.valid) {
-      return errors.InvalidInspect.respond(res);
+      winston.warn(`Invalid link: ${data.link}`)
+      continue
     }
 
     let price;
