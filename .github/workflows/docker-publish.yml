@@ -7,11 +7,11 @@ name: Docker
 
 on:
   push:
-    branches: [ master, beta ]
+    branches: [master, beta]
     # Publish semver tags as releases.
-    tags: [ 'v*.*.*' ]
+    tags: ["v*.*.*"]
   pull_request:
-    branches: [ master, beta ]
+    branches: [master, beta]
 
 env:
   # Use docker.io for Docker Hub if empty
@@ -19,10 +19,8 @@ env:
   # github.repository as <account>/<repo>
   IMAGE_NAME: step7750/csgofloat
 
-
 jobs:
   build:
-
     runs-on: ubuntu-latest
     permissions:
       contents: read

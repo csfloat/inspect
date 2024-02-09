@@ -21,34 +21,34 @@ CSGOFloat is a free and open source API service that allows you to obtain the fl
 [CSGOFloat-Website](https://github.com/Step7750/CSGOFloat-Website)
 
 ## Table of Contents
-  * [API](https://github.com/Step7750/CSGOFloat#api)
-  	* [`GET /`](https://github.com/Step7750/CSGOFloat#get-)
-		* [Examples](https://github.com/Step7750/CSGOFloat#examples)
-	* [`GET /` (Using an Inspect URL)](https://github.com/Step7750/CSGOFloat#get--using-an-inspect-url)
-		* [Examples](https://github.com/Step7750/CSGOFloat#examples-1)
-	* [Reply](https://github.com/Step7750/CSGOFloat#reply)
-	* [Errors](https://github.com/Step7750/CSGOFloat#errors)
-  * [How to Install](https://github.com/Step7750/CSGOFloat#how-to-install)
-  	* [Docker](https://github.com/Step7750/CSGOFloat#docker)
-	* [Manual](https://github.com/Step7750/CSGOFloat#manual)
-	* [Steps](https://github.com/Step7750/CSGOFloat#steps)
-	* [How to First Login a Bot](https://github.com/Step7750/CSGOFloat#how-to-first-login-a-bot)
-	* [Breaking Changes](https://github.com/Step7750/CSGOFloat#breaking-changes)
-	* [Args](https://github.com/Step7750/CSGOFloat#args)
 
+- [API](https://github.com/Step7750/CSGOFloat#api)
+  - [`GET /`](https://github.com/Step7750/CSGOFloat#get-)
+    - [Examples](https://github.com/Step7750/CSGOFloat#examples)
+  - [`GET /` (Using an Inspect URL)](https://github.com/Step7750/CSGOFloat#get--using-an-inspect-url)
+    - [Examples](https://github.com/Step7750/CSGOFloat#examples-1)
+  - [Reply](https://github.com/Step7750/CSGOFloat#reply)
+  - [Errors](https://github.com/Step7750/CSGOFloat#errors)
+- [How to Install](https://github.com/Step7750/CSGOFloat#how-to-install)
+  - [Docker](https://github.com/Step7750/CSGOFloat#docker)
+  - [Manual](https://github.com/Step7750/CSGOFloat#manual)
+  - [Steps](https://github.com/Step7750/CSGOFloat#steps)
+  - [How to First Login a Bot](https://github.com/Step7750/CSGOFloat#how-to-first-login-a-bot)
+  - [Breaking Changes](https://github.com/Step7750/CSGOFloat#breaking-changes)
+  - [Args](https://github.com/Step7750/CSGOFloat#args)
 
 # API
 
 ### `GET /`
 
-Parameters s, a, d, m can be found in the inspect link of a csgo item. 
+Parameters s, a, d, m can be found in the inspect link of a csgo item.
 
-| Parameter     | Description   |
-|:-------------:|:-------------|
-| s             | Optional: If an inventory item, fill out this parameter from the inspect URL |
-| a             | Required: Inspect URL "a" param      |
-| d             | Required: Inspect URL "d" param      |
-| m             | Optional: If a market item, fill out this parameter from the inspect URL      |
+| Parameter | Description                                                                  |
+| :-------: | :--------------------------------------------------------------------------- |
+|     s     | Optional: If an inventory item, fill out this parameter from the inspect URL |
+|     a     | Required: Inspect URL "a" param                                              |
+|     d     | Required: Inspect URL "d" param                                              |
+|     m     | Optional: If a market item, fill out this parameter from the inspect URL     |
 
 ##### Examples
 
@@ -56,13 +56,11 @@ Parameters s, a, d, m can be found in the inspect link of a csgo item.
 
 `http://<ip>:<port>/?s=76561198084749846&a=6777992090&d=3378412659870065794`
 
-
-
 ### `GET /` (Using an Inspect URL)
 
-| Parameter     | Description   |
-|:-------------:|:-------------|
-| url             | Required: Inspect URL of the CSGO item |
+| Parameter | Description                            |
+| :-------: | :------------------------------------- |
+|    url    | Required: Inspect URL of the CSGO item |
 
 ##### Examples
 
@@ -70,72 +68,70 @@ Parameters s, a, d, m can be found in the inspect link of a csgo item.
 
 `http://<ip>:<port>/?url=steam://rungame/730/76561202255233023/+csgo_econ_action_preview%20M625254122282020305A6760346663D30614827701953021`
 
-
 ### Reply
 
 The reply of this API is based upon [this CSGO protobuf](https://github.com/SteamDatabase/GameTracking-CSGO/blob/a00b71ec84b24e0773c5fbd595eb91e17fa57f8f/Protobufs/cstrike15_gcmessages.proto#L729).
 
-| Attribute     | Data Type     | Description   |
-|:-------------:|:-------------:|:--------------|
-| itemid        | uint32 | Item ID |
-| defindex        | uint32 | Weapon ID |
-| paintindex        | uint32 | Paint ID of the weapon (skin) |
-| rarity        | uint32 | Rarity value of the weapon |
-| quality        | uint32 | Quality of the weapon |
-| paintwear        | uint32 | Wear of the exterior of the skin |
-| paintseed        | uint32 | Seed for the RNG that defines how to place the skin texture |
-| killeatervalue        | uint32 | If the item is StatTrak, this is the amount of kills |
-| customname        | string | If the item has a nametag, this is the custom name |
-| stickers        | array | Contains data on the placement of stickers |
-| origin        | uint32 | Origin ID of the weapon |
-| floatvalue        | float | Exterior wear of the skin in its float representation |
-| imageurl        | string | Optional: Image of the item |
-| min        | float | Minimum wear of the skin |
-| max        | float | Maximum wear of the skin |
-| item_name        | uint32 | Optional: Name of the skin |
-| weapon_type        | string | Weapon type name |
-| origin_name        | string | Origin name (Trade-Up, Dropped, etc...) |
-| quality_name       | string | Quality name (Souvenir, Stattrak, etc...) |
-| rarity_name 	     | string | Rarity name (Covert, Mil-Spec, etc...) |
-| wear_name  	     | string | Wear name (Factory New, Minimal Wear, etc...) |
-| full_item_name     | string | Full Item Name (ex. SSG 08 Blue Spruce (Minimal Wear)) |
-
+|   Attribute    | Data Type | Description                                                 |
+| :------------: | :-------: | :---------------------------------------------------------- |
+|     itemid     |  uint32   | Item ID                                                     |
+|    defindex    |  uint32   | Weapon ID                                                   |
+|   paintindex   |  uint32   | Paint ID of the weapon (skin)                               |
+|     rarity     |  uint32   | Rarity value of the weapon                                  |
+|    quality     |  uint32   | Quality of the weapon                                       |
+|   paintwear    |  uint32   | Wear of the exterior of the skin                            |
+|   paintseed    |  uint32   | Seed for the RNG that defines how to place the skin texture |
+| killeatervalue |  uint32   | If the item is StatTrak, this is the amount of kills        |
+|   customname   |  string   | If the item has a nametag, this is the custom name          |
+|    stickers    |   array   | Contains data on the placement of stickers                  |
+|     origin     |  uint32   | Origin ID of the weapon                                     |
+|   floatvalue   |   float   | Exterior wear of the skin in its float representation       |
+|    imageurl    |  string   | Optional: Image of the item                                 |
+|      min       |   float   | Minimum wear of the skin                                    |
+|      max       |   float   | Maximum wear of the skin                                    |
+|   item_name    |  uint32   | Optional: Name of the skin                                  |
+|  weapon_type   |  string   | Weapon type name                                            |
+|  origin_name   |  string   | Origin name (Trade-Up, Dropped, etc...)                     |
+|  quality_name  |  string   | Quality name (Souvenir, Stattrak, etc...)                   |
+|  rarity_name   |  string   | Rarity name (Covert, Mil-Spec, etc...)                      |
+|   wear_name    |  string   | Wear name (Factory New, Minimal Wear, etc...)               |
+| full_item_name |  string   | Full Item Name (ex. SSG 08 Blue Spruce (Minimal Wear))      |
 
 ```json
 {
-	"iteminfo": {
-		"accountid": null,
-		"itemid": "13874827217",
-		"defindex": 7,
-		"paintindex": 282,
-		"rarity": 5,
-		"quality": 4,
-		"paintseed": 361,
-		"killeaterscoretype": null,
-		"killeatervalue": null,
-		"customname": null,
-		"stickers": [],
-		"inventory": 11,
-		"origin": 8,
-		"questid": null,
-		"dropreason": null,
-		"musicindex": null,
-		"s": "0",
-		"a": "13874827217",
-		"d": "4649025583329100061",
-		"m": "2608048286785948758",
-		"floatvalue": 0.22740158438682556,
-		"imageurl": "http://media.steampowered.com/apps/730/icons/econ/default_generated/weapon_ak47_cu_ak47_cobra_light_large.7494bfdf4855fd4e6a2dbd983ed0a243c80ef830.png",
-		"min": 0.1,
-		"max": 0.7,
-		"weapon_type": "AK-47",
-		"item_name": "Redline",
-		"rarity_name": "Classified",
-		"quality_name": "Unique",
-		"origin_name": "Found in Crate",
-		"wear_name": "Field-Tested",
-		"full_item_name": "AK-47 | Redline (Field-Tested)"
-	}
+  "iteminfo": {
+    "accountid": null,
+    "itemid": "13874827217",
+    "defindex": 7,
+    "paintindex": 282,
+    "rarity": 5,
+    "quality": 4,
+    "paintseed": 361,
+    "killeaterscoretype": null,
+    "killeatervalue": null,
+    "customname": null,
+    "stickers": [],
+    "inventory": 11,
+    "origin": 8,
+    "questid": null,
+    "dropreason": null,
+    "musicindex": null,
+    "s": "0",
+    "a": "13874827217",
+    "d": "4649025583329100061",
+    "m": "2608048286785948758",
+    "floatvalue": 0.22740158438682556,
+    "imageurl": "http://media.steampowered.com/apps/730/icons/econ/default_generated/weapon_ak47_cu_ak47_cobra_light_large.7494bfdf4855fd4e6a2dbd983ed0a243c80ef830.png",
+    "min": 0.1,
+    "max": 0.7,
+    "weapon_type": "AK-47",
+    "item_name": "Redline",
+    "rarity_name": "Classified",
+    "quality_name": "Unique",
+    "origin_name": "Found in Crate",
+    "wear_name": "Field-Tested",
+    "full_item_name": "AK-47 | Redline (Field-Tested)"
+  }
 }
 ```
 
@@ -149,10 +145,14 @@ Request Body:
 
 ```json
 {
-	"links": [
-		{"link": "steam://rungame/730/76561202255233023/+csgo_econ_action_preview%20M2906459769049600931A18971892678D9403672490970763167"},
-		{"link": "steam://rungame/730/76561202255233023/+csgo_econ_action_preview%20M2907585668964658722A17231546984D5353704955732169451"}
-	]
+  "links": [
+    {
+      "link": "steam://rungame/730/76561202255233023/+csgo_econ_action_preview%20M2906459769049600931A18971892678D9403672490970763167"
+    },
+    {
+      "link": "steam://rungame/730/76561202255233023/+csgo_econ_action_preview%20M2907585668964658722A17231546984D5353704955732169451"
+    }
+  ]
 }
 ```
 
@@ -191,31 +191,32 @@ Example Response:
 Gives some data on the current status of your bots and queue.
 
 Example:
+
 ```json
-{"bots_online":100,"bots_total":100,"queue_size":20,"queue_concurrency":100}
+{ "bots_online": 100, "bots_total": 100, "queue_size": 20, "queue_concurrency": 100 }
 ```
 
 ## Errors
 
 ##### Error Codes
 
-| Code     | Description   |
-|:-------------:|:-------------|
-| 1             | Improper Parameter Structure |
-| 2             | Invalid Inspect Link Structure |
-| 3             | You may only have X pending request(s) at a time |
-| 4             | Valve's servers didn't reply in time |
-| 5             | Valve's servers appear to be offline, please try again later! |
-| 6             | Something went wrong on our end, please try again |
-| 7             | Improper body format |
-| 8             | Bad Secret |
+| Code | Description                                                   |
+| :--: | :------------------------------------------------------------ |
+|  1   | Improper Parameter Structure                                  |
+|  2   | Invalid Inspect Link Structure                                |
+|  3   | You may only have X pending request(s) at a time              |
+|  4   | Valve's servers didn't reply in time                          |
+|  5   | Valve's servers appear to be offline, please try again later! |
+|  6   | Something went wrong on our end, please try again             |
+|  7   | Improper body format                                          |
+|  8   | Bad Secret                                                    |
 
 ##### Example Error
 
 ```json
 {
-	"error": "Valve's servers didn't reply in time",
-	"code": 4
+  "error": "Valve's servers didn't reply in time",
+  "code": 4
 }
 ```
 
@@ -246,12 +247,11 @@ Example:
 }
 ```
 
-
 # How to Install
 
 In order to retrieve float values for weapons in this way, you must have Steam account(s) with a copy of CS:GO. Each account can request 1 float per second. CSGOFloat allows you to have as many bots as you'd like by inputting the login info into config.js.
 
-Each instance of CSGOFloat can operate around 300 accounts. It is recommended to either configure a Postgres server or setup another cache such as Varnish or Nginx in front of your server. 
+Each instance of CSGOFloat can operate around 300 accounts. It is recommended to either configure a Postgres server or setup another cache such as Varnish or Nginx in front of your server.
 
 ## Docker
 
@@ -274,7 +274,7 @@ Clone the repo (or `npm install csgofloat`) and install the Node.js dependencies
 
 #### Steps:
 
-1. Copy `config.example.js` to `config.js`
+1. Copy `config.js` to `config.js`
 2. Add your bot(s) login information to `config.js`
 3. Edit `config.js` with your desired settings
 4. Ensure Postgres is running if you've set it's database url
@@ -288,33 +288,33 @@ Clone the repo (or `npm install csgofloat`) and install the Node.js dependencies
 
 If your bot doesn't own CS:GO, CSGOFloat will automatically try to obtain a license for it during startup.
 
-* Using Email 2FA
-	* Only fill in the `user` and `pass` fields for the bot (make sure the `auth` field is empty or removed)
-	* Start up CSGOFloat
-	* It will tell you that an auth code was sent to your email
-	* Input the code from your email into the `auth` field for the bot
-	* Restart CSGOFloat
-	* It should successfully login and create machine auth token files for each account in the current [node-steam-user config directory](https://github.com/DoctorMcKay/node-steam-user#datadirectory)
-	* The `auth` field can now be optionally removed in your login file for further logins
-* Using Mobile 2FA
-	* Fill in the `user` and `pass` fields for the bot
-	* Fill in the `auth` field with the `shared_secret` for the bot
-	* Start up CSGOFloat
-	* It should successfully login and create machine auth token files for each account in the current [node-steam-user config directory](https://github.com/DoctorMcKay/node-steam-user#datadirectory)
-	* You'll need to keep the `auth` field filled in for future logins
+- Using Email 2FA
+  - Only fill in the `user` and `pass` fields for the bot (make sure the `auth` field is empty or removed)
+  - Start up CSGOFloat
+  - It will tell you that an auth code was sent to your email
+  - Input the code from your email into the `auth` field for the bot
+  - Restart CSGOFloat
+  - It should successfully login and create machine auth token files for each account in the current [node-steam-user config directory](https://github.com/DoctorMcKay/node-steam-user#datadirectory)
+  - The `auth` field can now be optionally removed in your login file for further logins
+- Using Mobile 2FA
+  - Fill in the `user` and `pass` fields for the bot
+  - Fill in the `auth` field with the `shared_secret` for the bot
+  - Start up CSGOFloat
+  - It should successfully login and create machine auth token files for each account in the current [node-steam-user config directory](https://github.com/DoctorMcKay/node-steam-user#datadirectory)
+  - You'll need to keep the `auth` field filled in for future logins
 
 ## Breaking Changes
 
 ### v3.0 -> v4.0
 
-* MongoDB is no longer supported, use Postgres instead
-* Socket.io access is no longer supported
-* Built-in HTTPS handling has been removed, reverse proxy to HTTP instead
+- MongoDB is no longer supported, use Postgres instead
+- Socket.io access is no longer supported
+- Built-in HTTPS handling has been removed, reverse proxy to HTTP instead
 
 ### v2.0 -> v3.0
 
-* Since we now use node-steam-user instead of node-steam, the sentry folder location now [depends on your system](https://github.com/DoctorMcKay/node-steam-user#datadirectory). If you'd like to migrate sentry files from v2.0 rather than having to reauthenticate email 2FA accounts, you'll need to copy your sentry files and rename them to match node-steam-user's format
-* `allow_simultaneous_requests` has now been replaced by `max_simultaneous_requests`. You can set `max_simultaneous_requests` to `-1` to allow an infinite amount of simultaneous requests by the same IP.
+- Since we now use node-steam-user instead of node-steam, the sentry folder location now [depends on your system](https://github.com/DoctorMcKay/node-steam-user#datadirectory). If you'd like to migrate sentry files from v2.0 rather than having to reauthenticate email 2FA accounts, you'll need to copy your sentry files and rename them to match node-steam-user's format
+- `allow_simultaneous_requests` has now been replaced by `max_simultaneous_requests`. You can set `max_simultaneous_requests` to `-1` to allow an infinite amount of simultaneous requests by the same IP.
 
 ## Args
 
