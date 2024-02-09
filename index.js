@@ -77,7 +77,11 @@ async function handleJob(job) {
       postgres.updateItemPrice(item.a, link.price);
     }
 
-    gameData.addAdditionalItemProperties(item);
+    const bot = botController.getFreeBot()
+    if (!bot) throw errors.NoBotsAvailable
+
+    gameData.addAdditionalItemProperties(item, bot.steamClient);
+
     item = utils.removeNullValues(item);
 
     job.setResponse(item.a, item);
