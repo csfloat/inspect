@@ -263,7 +263,12 @@ queue.process(botController.bots.length, botController, async job => {
     itemData.iteminfo,
     await postgres.getItemRank(itemData.iteminfo.a),
   );
-  gameData.addAdditionalItemProperties(itemData.iteminfo);
+
+  const bot = botController.getFreeBot()
+
+  if (!bot) throw errors.NoBotsAvailable
+
+  gameData.addAdditionalItemProperties(itemData.iteminfo, bot.steamClient);
 
   itemData.iteminfo = utils.removeNullValues(itemData.iteminfo);
   itemData.iteminfo.stickers = itemData.iteminfo.stickers.map(s => utils.removeNullValues(s));
