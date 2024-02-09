@@ -10,4 +10,4 @@ RUN npm install
 
 EXPOSE 80
 
-CMD [ "node", "index.js" ]
+CMD [ "node", "--max-old-space-size=4096", "index.js" ]
