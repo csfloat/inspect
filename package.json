@@ -17,7 +17,7 @@
     "command-line-args": "^5.1.1",
     "express": "^4.17.1",
     "express-rate-limit": "^5.2.6",
-    "globaloffensive": "^2.1.0",
+    "globaloffensive": "^3.1.0",
     "long": "^3.2.0",
     "mongodb": "^2.2.36",
     "pg": "^8.10.0",
