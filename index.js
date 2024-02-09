@@ -83,7 +83,7 @@ async function handleJob(job) {
       postgres.updateItemPrice(item.a, link.price);
     }
 
-    gameData.addAdditionalItemProperties(item, bot.steamClient);
+    gameData.addAdditionalItemProperties(item);
 
     item = utils.removeNullValues(item);
 
@@ -271,11 +271,7 @@ queue.process(botController.bots.length, botController, async job => {
     await postgres.getItemRank(itemData.iteminfo.a),
   );
 
-  const bot = botController.getFreeBot()
-
-  if (!bot) throw errors.NoBotsAvailable
-
-  gameData.addAdditionalItemProperties(itemData.iteminfo, bot.steamClient);
+  gameData.addAdditionalItemProperties(itemData.iteminfo);
 
   itemData.iteminfo = utils.removeNullValues(itemData.iteminfo);
   itemData.iteminfo.stickers = itemData.iteminfo.stickers.map(s => utils.removeNullValues(s));
