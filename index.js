@@ -151,6 +151,8 @@ app.get("/", async (req, res) => {
     link = new InspectURL(req.query);
   }
 
+  winston.info(`GET /: link=${link}`)
+
   if (!link || !link.getParams()) {
     return errors.InvalidInspect.respond(res);
   }
