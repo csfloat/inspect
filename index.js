@@ -70,15 +70,18 @@ const allowedRegexOrigins = CONFIG.allowed_regex_origins.map(origin => new RegEx
 async function handleJob(job) {
   // See which items have already been cached
   const itemData = await postgres.getItemData(job.getRemainingLinks().map(e => e.link));
+
+  const bot = botController.getFreeBot();
+  if (!bot) {
+    return job.setResponseRemaining(errors.NoBotsAvailable);
+  }
+
   for (let item of itemData) {
     const link = job.getLink(item.a);
 
     if (!item.price && link.price) {
       postgres.updateItemPrice(item.a, link.price);
     }
-
-    const bot = botController.getFreeBot()
-    if (!bot) throw errors.NoBotsAvailable
 
     gameData.addAdditionalItemProperties(item, bot.steamClient);
 
