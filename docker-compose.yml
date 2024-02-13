@@ -11,10 +11,10 @@ services:
       - .pg:/var/lib/postgresql/data
 
     expose:
-      - ${PG_EXPOSE_PORT}
+      - ${POSTGRES_PORT}
 
     ports:
-      - "${PG_EXPOSE_PORT}:5432"
+      - "${POSTGRES_PORT}:5432"
 
     # Запускаемся тогда, когда postgresql готов
     healthcheck:
