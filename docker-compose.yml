@@ -1,0 +1,76 @@
+services:
+  # Сервис постгреса, доавблен healthcheck для ожидания запуска (+ volumes)
+  postgres:
+    image: postgres:16.2
+    container_name: postgres
+    restart: always
+    env_file:
+      - .env
+
+    volumes:
+      - .pg:/var/lib/postgresql/data
+
+    ports:
+      - "${PG_EXPOSE_PORT}:5432"
+
+    # Запускаемся тогда, когда postgresql готов
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d ${POSTGRES_DB} -U ${POSTGRES_USER}"]
+      interval: 1s
+      timeout: 5s
+      retries: 10
+
+    networks:
+      - traefik-public
+
+  inspect:
+    container_name: inspect
+    working_dir: /inspect
+    env_file:
+      - .env
+
+    expose:
+      - 80
+
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    depends_on:
+      postgres:
+        condition: service_started
+
+    restart: always
+
+    volumes:
+      - .game_files:/inspect/game_files
+
+    networks:
+      - traefik-public
+
+    labels:
+      # Включаем traefik для текущего сервиса
+      - traefik.enable=true
+      # Объявляем порт сервиса в докере для прослушки
+      - traefik.http.services.app.loadbalancer.server.port=80
+      # Говорим трафику использовать этот хост в HTTP
+      - traefik.http.routers.app-http.entrypoints=http
+      - traefik.http.routers.app-http.rule=Host(`inspect.steamify.io`)
+      # Говорит traefik использовать объявленную публичную сеть
+      - traefik.docker.network=traefik-public
+      # Говорим traefik использовать этот хост в HTTPS
+      - traefik.http.routers.app-https.entrypoints=https
+      - traefik.http.routers.app-https.rule=Host(`inspect.steamify.io`)
+      - traefik.http.routers.app-https.tls=true
+      # Используем сервис `le` (Let's Encrypt) для получения сертификата
+      - traefik.http.routers.app-https.tls.certresolver=le
+      # Объявляем миддлвейр редиректа с HTTP на HTTPS
+      - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
+      - traefik.http.middlewares.https-redirect.redirectscheme.permanent=true
+      # Устанавливаем миддлвейр редиректа с HTTP на HTTPS
+      - traefik.http.routers.app-http.middlewares=https-redirect
+
+
+networks:
+  traefik-public:
+    external: true

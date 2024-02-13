@@ -1,0 +1,39 @@
+services:
+
+  traefik:
+    image: traefik:v3.0
+    container_name: traefik
+    restart: unless-stopped
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik-public-certificates:/certificates
+    command:
+      # Включаем чтение лейблов из других сервисов, развёрнутых в докере
+      - --providers.docker
+      # Выключаем дефолтную функцию позиционирования сервисов по первому EXPOSE-порту
+      - --providers.docker.exposedbydefault=false
+      # Создаём энтрипоинты для HTTP-запросов
+      - --entrypoints.http.address=:80
+      - --entrypoints.https.address=:443
+      # Настройки для получения сертификата от Let's Encrypt
+      - --certificatesresolvers.le.acme.email=maxim.shnyagin@gmail.com
+      - --certificatesresolvers.le.acme.storage=/certificates/acme.json
+      - --certificatesresolvers.le.acme.tlschallenge=true
+      # Включаем логирование HTTP-запросов и ошибок
+      - --accesslog
+      - --log
+    networks:
+      - traefik-public
+
+volumes:
+  # Персистентное хранилище сертификатов, сгенерированных LE
+  traefik-public-certificates:
+
+
+# Внешняя сеть для связи между контейнерами докера
+networks:
+  traefik-public:
+    external: true

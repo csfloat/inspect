@@ -148,7 +148,7 @@ if (CONFIG.rate_limit && CONFIG.rate_limit.enable) {
   );
 }
 
-app.get("/", async (req, res) => {
+app.get("/api/inspect", async (req, res) => {
   // Get and parse parameters
   let link;
 
@@ -182,7 +182,7 @@ app.get("/", async (req, res) => {
   }
 });
 
-app.post("/bulk", async (req, res) => {
+app.post("/api/inspect/bulk", async (req, res) => {
   if (!req.body || (CONFIG.bulk_key && req.body.bulk_key !== CONFIG.bulk_key)) {
     return errors.BadSecret.respond(res);
   }
@@ -224,7 +224,7 @@ app.post("/bulk", async (req, res) => {
   }
 });
 
-app.get("/stats", (req, res) => {
+app.get("/api/stats", (req, res) => {
   res.json({
     bots_online: botController.getReadyAmount(),
     bots_total: botController.bots.length,
@@ -233,7 +233,9 @@ app.get("/stats", (req, res) => {
   });
 });
 
-app.post("/sync_accounts", (req, res) => {
+app.post("/api/account/sync", (req, res) => {
+  return res.status(400).send(JSON.stringify({ success: false, message: "try later" }));
+
   if (!req.body) return errors.BadBody.respond(res);
 
   const accounts = req.body.accounts;
@@ -248,7 +250,7 @@ app.post("/sync_accounts", (req, res) => {
     winston.warn(e);
     errors.GenericBad.respond(res);
   }
-})
+});
 
 const http_server = require("http").Server(app);
 http_server.listen(CONFIG.http.port);
