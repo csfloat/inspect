@@ -10,6 +10,9 @@ services:
     volumes:
       - .pg:/var/lib/postgresql/data
 
+    expose:
+      - ${PG_EXPOSE_PORT}
+
     ports:
       - "${PG_EXPOSE_PORT}:5432"
 
