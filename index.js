@@ -9,7 +9,9 @@ const optionDefinitions = [
   { name: "steam_data", alias: "s", type: String, defaultValue: "./steam_data" }, // Steam data directory
 ];
 
-const winston = require("winston"),
+const
+  fs = require("fs"),
+  winston = require("winston"),
   args = require("command-line-args")(optionDefinitions),
   bodyParser = require("body-parser"),
   rateLimit = require("express-rate-limit"),
@@ -43,8 +45,8 @@ postgres.connect();
 
 
 fs.readFileSync("accounts.txt")
-  .replace(/\r\n/g, "\n")
   .toString()
+  .replace(/\r\n/g, "\n")
   .split("\n")
   .map(line => line.split(":"))
   .forEach(([username, password, shared_secret, proxy]) =>
