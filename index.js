@@ -42,15 +42,15 @@ if (args.steam_data) {
 postgres.connect();
 
 
-for (const [username, password, shared_secret, proxy] of fs.readFileSync("accounts.txt").toString().split("\n").map(line => line.split(":"))) {
-  const loginData = {
-    username: username,
-    password: password,
-    auth: shared_secret || null,
-    proxy: proxy || null,
-  }
-  botController.addBot(loginData);
-}
+fs.readFileSync("accounts.txt")
+  .replace(/\r\n/g, "\n")
+  .toString()
+  .split("\n")
+  .map(line => line.split(":"))
+  .forEach(([username, password, shared_secret, proxy]) =>
+    botController.addBot({ username: username, password: password, auth: shared_secret || null, proxy: proxy || null })
+);
+
 
 // Setup and configure express
 const app = require("express")();
