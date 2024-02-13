@@ -39,8 +39,8 @@ pull: ## git  pull
 reload: pull down up ## pull & build & run all
 
 .PHONY: logs
-bot-logs:
-	@container_id=$$(docker ps -q -f name=bot); \
+logs:
+	@container_id=$$(docker ps -q -f name=inspect); \
 	if [ -z "$$container_id" ]; then \
 		echo "Container with inspect (inspect-inspect) not found."; \
 	else \
