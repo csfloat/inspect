@@ -268,7 +268,7 @@ The first time you start the docker container, it'll copy the `config.js` file t
 
 ## Manual
 
-Requires Node.js v8+!
+Requires Node.js v14+!
 
 Clone the repo (or `npm install csgofloat`) and install the Node.js dependencies using `npm install` or `yarn install` in the root directory.
 
