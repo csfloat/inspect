@@ -48,7 +48,13 @@ fs.readFileSync("accounts.txt")
   .toString()
   .replace(/\r\n/g, "\n")
   .split("\n")
-  .map(line => line.split(":"))
+  .map(line => {
+    const parts = line.split(':');
+    const accountParts = parts.slice(0, 3);
+    const proxyParts = parts.slice(3);
+    const proxy = proxyParts.join(':');
+    return [...accountParts, proxy || ''].slice(0, 4);
+  })
   .forEach(([username, password, shared_secret, proxy]) =>
     botController.addBot({ username: username, password: password, auth: shared_secret || null, proxy: proxy || null })
 );
