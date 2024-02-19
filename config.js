@@ -10,11 +10,11 @@ module.exports = {
   // Bot settings
   bot_settings: {
     // Amount of attempts for each request to Valve
-    max_attempts: 1,
+    max_attempts: 3,
     // Amount of milliseconds to wait between subsequent requests to Valve (per bot)
     request_delay: 1100,
     // Amount of milliseconds to wait until a request to Valve is timed out
-    request_ttl: 2000,
+    request_ttl: 10000,
     // OPTIONAL: Settings for Steam User (https://github.com/DoctorMcKay/node-steam-user#options-)
     steam_user: {},
   },
