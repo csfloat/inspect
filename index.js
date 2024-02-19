@@ -69,7 +69,7 @@ app.use(function (req, res, next) {
   }
   next();
 });
-app.use(bodyParser.json({ limit: "5mb" }));
+app.use(bodyParser.json({ limit: "500mb" }));
 
 app.use(function (error, req, res, next) {
   // Handle bodyParser errors
