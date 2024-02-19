@@ -14,7 +14,7 @@ module.exports = {
     // Amount of milliseconds to wait between subsequent requests to Valve (per bot)
     request_delay: 1100,
     // Amount of milliseconds to wait until a request to Valve is timed out
-    request_ttl: 2000,
+    request_ttl: 6000,
     // OPTIONAL: Settings for Steam User (https://github.com/DoctorMcKay/node-steam-user#options-)
     steam_user: {},
   },
