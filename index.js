@@ -1,9 +1,5 @@
 global._mckay_statistics_opt_out = true; // Opt out of node-steam-user stats
 
-process.on("uncaughtException", (err) => {
-  console.error("global expection: ", err);
-});
-
 const optionDefinitions = [
   { name: "config", alias: "c", type: String, defaultValue: "./config.js" }, // Config file location
   { name: "steam_data", alias: "s", type: String, defaultValue: "./steam_data" }, // Steam data directory
