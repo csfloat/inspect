@@ -8,6 +8,6 @@ COPY . .
 
 RUN npm install
 
-EXPOSE 80
+EXPOSE 8080
 
 CMD [ "node", "--max-old-space-size=40096", "index.js" ]

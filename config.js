@@ -3,7 +3,7 @@ require("dotenv").config();
 module.exports = {
   // Configuration for the HTTP API server
   http: {
-    port: 80,
+    port: 8080,
   },
   // Whether to trust a forwarding proxy's IP (trust X-Forwarded-For)
   trust_proxy: false,
