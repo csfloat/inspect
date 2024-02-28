@@ -23,6 +23,10 @@ if (CONFIG.max_simultaneous_requests === undefined) {
     CONFIG.max_simultaneous_requests = 1;
 }
 
+if (CONFIG.realtime_sticker_wear === undefined) {
+    CONFIG.realtime_sticker_wear = false;
+}
+
 winston.level = CONFIG.logLevel || 'debug';
 
 if (CONFIG.logins.length === 0) {
@@ -85,7 +89,7 @@ const allowedRegexOrigins = CONFIG.allowed_regex_origins.map((origin) => new Reg
 
 async function handleJob(job) {
     // See which items have already been cached
-    const itemData = await postgres.getItemData(job.getRemainingLinks().map(e => e.link));
+    const itemData = await postgres.getItemData(job.getRemainingLinks().map(e => e.link), CONFIG.realtime_sticker_wear);
     for (let item of itemData) {
         const link = job.getLink(item.a);
 
