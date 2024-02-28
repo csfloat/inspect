@@ -59,6 +59,8 @@ services:
       # Говорим трафику использовать этот хост в HTTP
       - traefik.http.routers.app-http.entrypoints=http
       - traefik.http.routers.inspect.rule=Host(`inspect.steamify.io`) && PathPrefix(`/inspect`)
+      - traefik.http.middlewares.inspect-stripprefix.stripprefix.prefixes=/inspect
+      - traefik.http.routers.inspect.middlewares=inspect-stripprefix
       - traefik.http.services.inspect.loadbalancer.server.port=8080
       # Говорит traefik использовать объявленную публичную сеть
       - traefik.docker.network=traefik-public
