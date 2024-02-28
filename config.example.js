@@ -68,4 +68,6 @@ module.exports = {
     'bulk_key': '',
     // OPTIONAL: Maximum queue size allowed before dropping requests
     'max_queue_size': -1,
+    // OPTIONAL: If stickers are available, valve server shall prevail
+    'realtime_sticker_wear': true,
 };
