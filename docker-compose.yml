@@ -55,7 +55,7 @@ services:
       # Включаем traefik для текущего сервиса
       - traefik.enable=true
       # Объявляем порт сервиса в докере для прослушки
-      - traefik.http.services.app.loadbalancer.server.port=80
+      - traefik.http.services.app.loadbalancer.server.port=8080
       # Говорим трафику использовать этот хост в HTTP
       - traefik.http.routers.app-http.entrypoints=http
       - traefik.http.routers.app-http.rule=Host(`inspect.steamify.io`) && PathPrefix(`/inspect`)
