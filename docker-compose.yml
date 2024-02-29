@@ -58,8 +58,7 @@ services:
       - traefik.http.services.app.loadbalancer.server.port=8080
       # Говорим трафику использовать этот хост в HTTP
       - traefik.http.routers.app-http.entrypoints=http
-      - traefik.http.routers.app-http.rule=Host(`inspect.steamify.io`) && PathPrefix(`/inspect`)
-      - traefik.http.routers.app-https.rule=Host(`inspect.steamify.io`)
+      - traefik.http.routers.inspect.rule=Host(`inspect.steamify.io`) && PathPrefix(`/inspect`)
       - traefik.http.middlewares.inspect-stripprefix.stripprefix.prefixes=/inspect
       - traefik.http.routers.inspect.middlewares=inspect-stripprefix
       - traefik.http.services.inspect.loadbalancer.server.port=8080
