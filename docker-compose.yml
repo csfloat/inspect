@@ -57,7 +57,7 @@ services:
       - traefik.http.routers.inspect.entrypoints=http
       - traefik.http.routers.inspect.rule=Host(`inspect.steamify.io`) && PathPrefix(`/inspect`)
       - traefik.http.middlewares.inspect-stripprefix.stripprefix.prefixes=/inspect
-      - traefik.http.routers.inspect.middlewares=inspect-stripprefix@docker
+      - traefik.http.routers.inspect.middlewares=inspect-stripprefix
       - traefik.docker.network=traefik-public
       - traefik.http.routers.inspect-secure.entrypoints=https
       - traefik.http.routers.inspect-secure.rule=Host(`inspect.steamify.io`) && PathPrefix(`/inspect`)
