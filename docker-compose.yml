@@ -52,28 +52,18 @@ services:
       - traefik-public
 
     labels:
-      # Включаем traefik для текущего сервиса
       - traefik.enable=true
-      # Объявляем порт сервиса в докере для прослушки
-      - traefik.http.services.app.loadbalancer.server.port=8080
-      # Говорим трафику использовать этот хост в HTTP
+      - traefik.http.services.inspect.loadbalancer.server.port=8080
       - traefik.http.routers.inspect.entrypoints=http
       - traefik.http.routers.inspect.rule=Host(`inspect.steamify.io`) && PathPrefix(`/inspect`)
       - traefik.http.middlewares.inspect-stripprefix.stripprefix.prefixes=/inspect
-      - traefik.http.routers.inspect.middlewares=inspect-stripprefix
-      - traefik.http.services.inspect.loadbalancer.server.port=8080
-      # Говорит traefik использовать объявленную публичную сеть
+      - traefik.http.routers.inspect.middlewares=inspect-stripprefix@docker
       - traefik.docker.network=traefik-public
-      # Говорим traefik использовать этот хост в HTTPS
-      - traefik.http.routers.inspect.entrypoints=https
-      - traefik.http.routers.inspect.tls=true
-      # Используем сервис `le` (Let's Encrypt) для получения сертификата
-      - traefik.http.routers.inspect.tls.certresolver=le
-      # Объявляем миддлвейр редиректа с HTTP на HTTPS
-      - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
-      - traefik.http.middlewares.https-redirect.redirectscheme.permanent=true
-      # Устанавливаем миддлвейр редиректа с HTTP на HTTPS
-      - traefik.http.routers.inspect.middlewares=https-redirect
+      - traefik.http.routers.inspect-secure.entrypoints=https
+      - traefik.http.routers.inspect-secure.rule=Host(`inspect.steamify.io`) && PathPrefix(`/inspect`)
+      - traefik.http.routers.inspect-secure.tls=true
+      - traefik.http.routers.inspect-secure.tls.certresolver=le
+      - traefik.http.routers.inspect-secure.middlewares=https-redirect
 
 
 networks:
