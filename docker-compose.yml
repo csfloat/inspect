@@ -55,13 +55,10 @@ services:
       - traefik.enable=true
       - traefik.http.services.inspect.loadbalancer.server.port=8080
       - traefik.http.routers.inspect.entrypoints=http
-      - traefik.http.routers.inspect.rule=Host(`inspect.steamify.io`) && PathPrefix(`/inspect`)
-      - traefik.http.middlewares.inspect-stripprefix.stripprefix.prefixes=/inspect
-      - traefik.http.routers.inspect.middlewares=inspect-stripprefix
+      - traefik.http.routers.inspect.rule=Host(`inspect.steamify.io`)
       - traefik.docker.network=traefik-public
       - traefik.http.routers.inspect-secure.entrypoints=https
-      - traefik.http.routers.inspect-secure.rule=Host(`inspect.steamify.io`) && PathPrefix(`/inspect`)
-      - traefik.http.routers.inspect-secure.middlewares=inspect-stripprefix
+      - traefik.http.routers.inspect-secure.rule=Host(`inspect.steamify.io`)
       - traefik.http.routers.inspect-secure.tls=true
       - traefik.http.routers.inspect-secure.tls.certresolver=le
       - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
