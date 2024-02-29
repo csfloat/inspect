@@ -61,6 +61,7 @@ services:
       - traefik.docker.network=traefik-public
       - traefik.http.routers.inspect-secure.entrypoints=https
       - traefik.http.routers.inspect-secure.rule=Host(`inspect.steamify.io`) && PathPrefix(`/inspect`)
+      - traefik.http.routers.inspect-secure.middlewares=inspect-stripprefix
       - traefik.http.routers.inspect-secure.tls=true
       - traefik.http.routers.inspect-secure.tls.certresolver=le
       - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
