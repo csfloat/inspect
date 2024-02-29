@@ -57,7 +57,7 @@ services:
       # Объявляем порт сервиса в докере для прослушки
       - traefik.http.services.app.loadbalancer.server.port=8080
       # Говорим трафику использовать этот хост в HTTP
-      - traefik.http.routers.app-http.entrypoints=http
+      - traefik.http.routers.inspect.entrypoints=http
       - traefik.http.routers.inspect.rule=Host(`inspect.steamify.io`) && PathPrefix(`/inspect`)
       - traefik.http.middlewares.inspect-stripprefix.stripprefix.prefixes=/inspect
       - traefik.http.routers.inspect.middlewares=inspect-stripprefix
@@ -65,15 +65,15 @@ services:
       # Говорит traefik использовать объявленную публичную сеть
       - traefik.docker.network=traefik-public
       # Говорим traefik использовать этот хост в HTTPS
-      - traefik.http.routers.app-https.entrypoints=https
-      - traefik.http.routers.app-https.tls=true
+      - traefik.http.routers.inspect.entrypoints=https
+      - traefik.http.routers.inspect.tls=true
       # Используем сервис `le` (Let's Encrypt) для получения сертификата
-      - traefik.http.routers.app-https.tls.certresolver=le
+      - traefik.http.routers.inspect.tls.certresolver=le
       # Объявляем миддлвейр редиректа с HTTP на HTTPS
       - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
       - traefik.http.middlewares.https-redirect.redirectscheme.permanent=true
       # Устанавливаем миддлвейр редиректа с HTTP на HTTPS
-      - traefik.http.routers.app-http.middlewares=https-redirect
+      - traefik.http.routers.inspect.middlewares=https-redirect
 
 
 networks:
