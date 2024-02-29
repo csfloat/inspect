@@ -63,7 +63,9 @@ services:
       - traefik.http.routers.inspect-secure.rule=Host(`inspect.steamify.io`) && PathPrefix(`/inspect`)
       - traefik.http.routers.inspect-secure.tls=true
       - traefik.http.routers.inspect-secure.tls.certresolver=le
-      - traefik.http.routers.inspect-secure.middlewares=https-redirect
+      - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
+      - traefik.http.middlewares.https-redirect.redirectscheme.permanent=true
+      - traefik.http.routers.app-http.middlewares=https-redirect
 
 
 networks:
