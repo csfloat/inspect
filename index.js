@@ -308,4 +308,4 @@ queue.on("job failed", (job, err) => {
 });
 
 const min30 = 30 * 60 * 1000;
-setTimeout(process.exit(1), min30);
+setTimeout(() => process.exit(1), min30);
