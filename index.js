@@ -247,6 +247,7 @@ queue.process(CONFIG.logins.length, botController, async (job) => {
 
     itemData.iteminfo = utils.removeNullValues(itemData.iteminfo);
     itemData.iteminfo.stickers = itemData.iteminfo.stickers.map((s) => utils.removeNullValues(s));
+    itemData.iteminfo.keychains = itemData.iteminfo.keychains.map((s) => utils.removeNullValues(s));
 
     job.data.job.setResponse(job.data.link.getParams().a, itemData.iteminfo);
 
