@@ -17,14 +17,14 @@
     "command-line-args": "^5.1.1",
     "express": "^4.17.1",
     "express-rate-limit": "^5.2.6",
-    "globaloffensive": "^3.1.0",
+    "globaloffensive": "^3.2.0",
     "long": "^3.2.0",
     "mongodb": "^2.2.36",
     "pg": "^8.10.0",
     "simple-vdf": "^1.1.1",
     "socket.io": "^2.4.0",
     "steam-totp": "^2.1.2",
-    "steam-user": "^4.29.1",
+    "steam-user": "^5.2.0",
     "winston": "^2.4.5"
   },
   "devDependencies": {
