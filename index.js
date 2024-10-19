@@ -18,7 +18,6 @@ const winston = require('winston'),
     gameData = new (require('./lib/game_data'))(CONFIG.game_files_update_interval, CONFIG.enable_game_file_updates),
     errors = require('./errors'),
     Job = require('./lib/job');
-const {config} = require("winston");
 
 if (CONFIG.max_simultaneous_requests === undefined) {
     CONFIG.max_simultaneous_requests = 1;
