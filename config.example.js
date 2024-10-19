@@ -68,4 +68,6 @@ module.exports = {
     'bulk_key': '',
     // OPTIONAL: Maximum queue size allowed before dropping requests
     'max_queue_size': -1,
+    // OPTIONAL: Enable caching of charms to the local DB for quick retrieval
+    'cache_charms': false,
 };
