@@ -308,4 +308,11 @@ queue.on("job failed", (job, err) => {
 });
 
 const min30 = 30 * 60 * 1000;
+
 setTimeout(() => process.exit(1), min30);
+
+process.on('unhandledRejection', (reason, promise) => {
+  promise.catch(err => {
+    winston.error(err)
+  });
+});
