@@ -8,5 +8,5 @@ accounts.txt
 travchis.txt
 proxies.txt
 .env
-./game_files
-./pg
+.game_files/
+.pg/
