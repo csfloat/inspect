@@ -1,4 +1,4 @@
-FROM node:18.15
+FROM node:22.12
 
 # Create app directory
 WORKDIR /inspect
