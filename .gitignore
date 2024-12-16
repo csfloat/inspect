@@ -7,3 +7,6 @@ game_files
 accounts.txt
 travchis.txt
 proxies.txt
+.env
+./game_files
+./pg
