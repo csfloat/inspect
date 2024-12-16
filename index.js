@@ -150,19 +150,6 @@ app.use(function (req, res, next) {
   next();
 });
 
-if (CONFIG.rate_limit && CONFIG.rate_limit.enable) {
-  app.use(
-    rateLimit({
-      windowMs: CONFIG.rate_limit.window_ms,
-      max: CONFIG.rate_limit.max,
-      headers: false,
-      handler: function (req, res) {
-        errors.RateLimit.respond(res);
-      },
-    }),
-  );
-}
-
 app.get("/api/inspect", async (req, res) => {
   // Get and parse parameters
   let link;

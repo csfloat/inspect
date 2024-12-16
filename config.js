@@ -30,12 +30,6 @@ module.exports = {
     "http://.*\\.steamify\\.com",
     "https://.*\\.steamify\\.com",
   ],
-  // Optionally configure a global rate limit across all endpoints
-  rate_limit: {
-    enable: false,
-    window_ms: 60 * 60 * 1000, // 60 min
-    max: 10000,
-  },
   // Logging Level (error, warn, info, verbose, debug, silly)
   logLevel: "debug",
   // Max amount of simultaneous requests from the same IP  (incl. WS and HTTP/HTTPS), -1 for unlimited
