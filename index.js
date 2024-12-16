@@ -267,9 +267,7 @@ queue.process(botController.bots.length, botController, async job => {
   delete itemData.delay;
 
   // add the item info to the DB
-  winston.debug(`Start inserting itemData ${job.data.link.getParams().a}`);
   await postgres.insertItemData(itemData.iteminfo, job.data.price);
-  winston.debug(`Inserted itemData ${job.data.link.getParams().a}`);
 
   // Get rank, annotate with game files
   itemData.iteminfo = Object.assign(
