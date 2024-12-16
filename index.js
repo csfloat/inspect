@@ -86,11 +86,6 @@ async function handleJob(job) {
   // See which items have already been cached
   const itemData = await postgres.getItemData(job.getRemainingLinks().map(e => e.link));
 
-  const bot = botController.getFreeBot();
-  if (!bot) {
-    return job.setResponseRemaining(errors.NoBotsAvailable);
-  }
-
   for (let item of itemData) {
     const link = job.getLink(item.a);
 
@@ -118,6 +113,11 @@ async function handleJob(job) {
 
   if (CONFIG.max_queue_size > 0 && queue.size() + job.remainingSize() > CONFIG.max_queue_size) {
     return job.setResponseRemaining(errors.MaxQueueSize);
+  }
+
+  const bot = botController.getFreeBot();
+  if (!bot) {
+    return job.setResponseRemaining(errors.NoBotsAvailable);
   }
 
   if (job.remainingSize() > 0) {
@@ -267,7 +267,9 @@ queue.process(botController.bots.length, botController, async job => {
   delete itemData.delay;
 
   // add the item info to the DB
+  winston.debug(`Start inserting itemData ${job.data.link.getParams().a}`);
   await postgres.insertItemData(itemData.iteminfo, job.data.price);
+  winston.debug(`Inserted itemData ${job.data.link.getParams().a}`);
 
   // Get rank, annotate with game files
   itemData.iteminfo = Object.assign(
