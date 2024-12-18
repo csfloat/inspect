@@ -294,11 +294,7 @@ queue.on("job failed", (job, err) => {
   job.data.job.setResponse(params.a, errors.TTLExceeded);
 });
 
-// const min30 = 30 * 60 * 1000;
-//
-// setTimeout(() => process.exit(1), min30);
-
-process.on('unhandledRejection', (reason, promise) => {
+process.on("unhandledRejection", (reason, promise) => {
   promise.catch(err => {
     winston.error(err)
   });
