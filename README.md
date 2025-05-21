@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://csgofloat.com/">
-    <img src="https://csgofloat.com/assets/full_logo.png" width=600/>
+    <img src="https://github.com/user-attachments/assets/8e792653-7944-4c97-b22f-bc646d6b1452" width=500/>
   </a>
 </p>
 
