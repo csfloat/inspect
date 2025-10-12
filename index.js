@@ -17,6 +17,7 @@ const winston = require('winston'),
     postgres = new (require('./lib/postgres'))(CONFIG.database_url, CONFIG.enable_bulk_inserts),
     gameData = new (require('./lib/game_data'))(CONFIG.game_files_update_interval, CONFIG.enable_game_file_updates),
     errors = require('./errors'),
+    PairScheduler = require('./lib/pair_scheduler'),
     Job = require('./lib/job');
 
 if (CONFIG.max_simultaneous_requests === undefined) {
@@ -34,23 +35,30 @@ if (args.steam_data) {
     CONFIG.bot_settings.steam_user.dataDirectory = args.steam_data;
 }
 
+const pairs = [];
 for (let [i, loginData] of CONFIG.logins.entries()) {
-    const settings = Object.assign({}, CONFIG.bot_settings);
-    if (CONFIG.proxies && CONFIG.proxies.length > 0) {
-        const proxy = CONFIG.proxies[i % CONFIG.proxies.length];
+	const settings = Object.assign({}, CONFIG.bot_settings);
+	let proxy = null;
 
-        if (proxy.startsWith('http://')) {
-            settings.steam_user = Object.assign({}, settings.steam_user, {httpProxy: proxy});
-        } else if (proxy.startsWith('socks5://')) {
-            settings.steam_user = Object.assign({}, settings.steam_user, {socksProxy: proxy});
-        } else {
-            console.log(`Invalid proxy '${proxy}' in config, must prefix with http:// or socks5://`);
-            process.exit(1);
-        }
-    }
+	if (CONFIG.proxies && CONFIG.proxies.length > 0) {
+		proxy = CONFIG.proxies[i % CONFIG.proxies.length];
 
-    botController.addBot(loginData, settings);
+		if (proxy.startsWith('http://')) {
+			settings.steam_user = Object.assign({}, settings.steam_user, { httpProxy: proxy });
+		} else if (proxy.startsWith('socks5://')) {
+			settings.steam_user = Object.assign({}, settings.steam_user, { socksProxy: proxy });
+		} else {
+			console.log(`Invalid proxy '${proxy}' in config, must prefix with http:// or socks5://`);
+			process.exit(1);
+		}
+	}
+
+	const bot = botController.addBot(loginData, settings); // RETURN bot
+	pairs.push({ bot: bot.id, proxy });                    // COLLECT pair
 }
+
+const scheduler = new PairScheduler(pairs);
+botController.setScheduler(scheduler);
 
 postgres.connect();
 
