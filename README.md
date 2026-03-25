@@ -12,7 +12,9 @@
 [![Chrome Web Store](https://img.shields.io/chrome-web-store/d/jjicbefpemnphinccgikpdaagjebbnhg.svg)](https://chrome.google.com/webstore/detail/csgofloat-market-checker/jjicbefpemnphinccgikpdaagjebbnhg)
 [![Docker](https://img.shields.io/docker/pulls/step7750/csgofloat.svg)](https://hub.docker.com/r/step7750/csgofloat)
 
-CSGOFloat is a free and open source API service that allows you to obtain the float and paint seed of any CSGO item using its inspect link.
+# Deprecated
+
+As of March 2026, all CS2 inspect links self-encode the item details, please use libraries such as [`@csfloat/cs-inspect-serializer`](https://github.com/csfloat/cs-inspect-serializer).
 
 ### Repo Links
 
