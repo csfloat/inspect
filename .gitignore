@@ -1,7 +1,1 @@
-node_modules
-config.js
-/config
-sentry
-game_files
-.DS_Store
-.idea
+# Dependencies\nnode_modules/\n\n# Config files with credentials\nconfig.js\n\n# Steam authentication files\nsentry/\nservers.json\n\n# Game files\ngamefiles/\n\n# Logs\n*.log
